@@ -5,6 +5,7 @@ import PatientsPage from "./pages/PatientsPage";
 import PatientPage from "./pages/PatientPage";
 import AppointmentsPage from "./pages/AppointmentsPage";
 import DoctorsPage from "./pages/DoctorsPage";
+import DoctorPage from "./pages/DoctorPage";
 import MedicalRecordsPage from "./pages/MedicalRecordsPage";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="doctors" element={<DoctorsPage />} />
+                <Route path="doctors/:id" element={<DoctorPage />} />
                 <Route path="patients" element={<PatientsPage />} />
                 <Route path="patients/:id" element={<PatientPage />} />
                 <Route path="appointments" element={<AppointmentsPage />} />
