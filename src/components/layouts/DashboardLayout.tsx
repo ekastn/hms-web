@@ -1,6 +1,7 @@
 import type React from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../organisms/Sidebar";
+import { Toaster } from "../ui/sonner";
 
 const DashboardLayout: React.FC = () => {
     return (
@@ -10,6 +11,7 @@ const DashboardLayout: React.FC = () => {
                 <main className="flex-1 p-4 md:p-6">
                     <Outlet />
                 </main>
+                <Toaster />
             </div>
         </div>
     );
