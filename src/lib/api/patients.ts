@@ -42,20 +42,6 @@ const mockPatients: Patient[] = [
                 notes: "Diet controlled",
             },
         ],
-        billing: [
-            {
-                description: "Annual check-up",
-                date: "2023-05-15",
-                amount: 150.0,
-                status: "Paid",
-            },
-            {
-                description: "Blood work",
-                date: "2023-05-15",
-                amount: 75.5,
-                status: "Pending",
-            },
-        ],
     },
     {
         id: "p2",
@@ -83,14 +69,6 @@ const mockPatients: Patient[] = [
                 notes: "Mild, controlled with inhaler",
             },
         ],
-        billing: [
-            {
-                description: "Consultation",
-                date: "2023-04-28",
-                amount: 125.0,
-                status: "Paid",
-            },
-        ],
     },
     {
         id: "p3",
@@ -112,14 +90,6 @@ const mockPatients: Patient[] = [
                 condition: "High Cholesterol",
                 diagnosedDate: "2017-09-12",
                 notes: "On statin medication",
-            },
-        ],
-        billing: [
-            {
-                description: "Physical therapy",
-                date: "2023-02-10",
-                amount: 200.0,
-                status: "Paid",
             },
         ],
     },

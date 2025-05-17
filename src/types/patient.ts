@@ -20,10 +20,4 @@ export interface Patient {
         diagnosedDate: string;
         notes: string;
     }[];
-    billing?: {
-        description: string;
-        date: string;
-        amount: number;
-        status: "Paid" | "Pending" | "Overdue";
-    }[];
 }

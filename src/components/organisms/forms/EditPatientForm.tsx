@@ -1,23 +1,30 @@
+"use client";
+
 import type React from "react";
 import { useState } from "react";
-import { FormField } from "@/components/molecules/FormField";
-import { addPatient } from "@/lib/api/patients";
-import type { Patient } from "@/types/patient";
+import { FormField } from "../../molecules/FormField";
+import { updatePatient } from "../../../lib/api/patients";
+import type { Patient } from "../../../types/patient";
 import { Button } from "@/components/ui/button";
 
-interface AddPatientFormProps {
+interface EditPatientFormProps {
+    patient: Patient;
     onSuccess: (patient: Patient) => void;
     onCancel: () => void;
 }
 
-export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCancel }) => {
+export const EditPatientForm: React.FC<EditPatientFormProps> = ({
+    patient,
+    onSuccess,
+    onCancel,
+}) => {
     const [formData, setFormData] = useState({
-        name: "",
-        age: "",
-        gender: "Male" as Patient["gender"],
-        email: "",
-        phone: "",
-        address: "",
+        name: patient.name,
+        age: patient.age.toString(),
+        gender: patient.gender,
+        email: patient.email,
+        phone: patient.phone,
+        address: patient.address,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,17 +80,18 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
 
         setIsSubmitting(true);
         try {
-            const newPatient = await addPatient({
+            const updatedPatient = await updatePatient(patient.id, {
                 ...formData,
                 age: Number(formData.age),
-                lastVisit: new Date().toISOString().split("T")[0],
-                appointments: [],
-                medicalHistory: [],
             });
-            onSuccess(newPatient);
+            if (updatedPatient) {
+                onSuccess(updatedPatient);
+            } else {
+                throw new Error("Failed to update patient");
+            }
         } catch (error) {
             setErrors({
-                submit: "Failed to add patient. Please try again.",
+                submit: "Failed to update patient. Please try again.",
             });
         } finally {
             setIsSubmitting(false);
@@ -106,8 +114,8 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
             <div className="grid grid-cols-2 gap-4">
                 <FormField
                     id="age"
-                    label="Age"
                     name="age"
+                    label="Age"
                     type="number"
                     value={formData.age}
                     onChange={handleChange}
@@ -137,9 +145,9 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
 
             <FormField
                 id="email"
+                name="email"
                 label="Email"
                 type="email"
-                name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="john.smith@example.com"
@@ -149,8 +157,8 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
 
             <FormField
                 id="phone"
-                label="Phone"
                 name="phone"
+                label="Phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="(555) 123-4567"
@@ -160,8 +168,8 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
 
             <FormField
                 id="address"
-                label="Address"
                 name="address"
+                label="Address"
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="123 Main St, Anytown, USA"
@@ -169,12 +177,14 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
                 required
             />
 
+            {errors.submit && <p className="text-destructive text-sm">{errors.submit}</p>}
+
             <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={onCancel}>
                     Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Adding..." : "Add Patient"}
+                    {isSubmitting ? "Saving..." : "Save Changes"}
                 </Button>
             </div>
         </form>
