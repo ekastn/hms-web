@@ -1,4 +1,4 @@
-import { Edit, Eye, Plus, Trash, User } from "lucide-react";
+import { Edit, Eye, Plus, Trash2 as Trash, User } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,16 +24,18 @@ const PatientsPage: React.FC = () => {
     }, []);
 
     const fetchPatients = async () => {
-        setLoading(true);
-        try {
-            const data = await getPatients();
-            setPatients(data);
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    setLoading(true);
+    try {
+      const data = await getPatients();
+      setPatients(data);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to load patients";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
     const handleViewPatient = (patient: Patient) => {
         navigate(`/patients/${patient.id}`);
@@ -49,19 +51,20 @@ const PatientsPage: React.FC = () => {
     };
 
     const confirmDeletePatient = async () => {
-        if (!patientToDelete) return;
+      if (!patientToDelete) return;
 
-        try {
-            await deletePatient(patientToDelete.id);
-            setPatients((prev) => prev.filter((p) => p.id !== patientToDelete.id));
-            toast("Patient deleted");
-        } catch (error) {
-            toast("Failed to delete patient");
-            console.log(error);
-        } finally {
-            setDeleteDialogOpen(false);
-            setPatientToDelete(null);
-        }
+      try {
+        await deletePatient(patientToDelete.id);
+        setPatients((prev) => prev.filter((p) => p.id !== patientToDelete.id));
+        toast.success("Patient deleted successfully");
+      } catch (error) {
+        console.error("Error deleting patient:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to delete patient";
+        toast.error(errorMessage);
+      } finally {
+        setDeleteDialogOpen(false);
+        setPatientToDelete(null);
+      }
     };
 
     const columns: Column<Patient>[] = [
@@ -112,6 +115,7 @@ const PatientsPage: React.FC = () => {
             label: "Delete",
             onClick: handleDeletePatient,
             icon: <Trash className="h-4 w-4 mr-2" />,
+            variant: "destructive" as const,
         },
     ];
 
@@ -122,18 +126,37 @@ const PatientsPage: React.FC = () => {
                     <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
                     <p className="text-muted-foreground">Manage patients and their information</p>
                 </div>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Button onClick={() => setIsAddDialogOpen(true)} disabled={loading}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Patient
+                    {loading ? 'Loading...' : 'Add Patient'}
                 </Button>
             </div>
 
-            <DataTable
-                data={patients}
-                columns={columns}
-                actions={actions}
-                searchPlaceholder="Search patients..."
-            />
+            {loading ? (
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2">Loading patients...</span>
+                </div>
+            ) : patients.length === 0 ? (
+                <div className="text-center py-12 border rounded-lg">
+                    <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium">No patients found</h3>
+                    <p className="text-muted-foreground mt-2 mb-4">
+                        Get started by adding a new patient.
+                    </p>
+                    <Button onClick={() => setIsAddDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Patient
+                    </Button>
+                </div>
+            ) : (
+                <DataTable
+                    data={patients}
+                    columns={columns}
+                    actions={actions}
+                    searchPlaceholder="Search patients..."
+                />
+            )}
 
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogContent className="sm:max-w-[600px]">

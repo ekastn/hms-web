@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../molecules/Table";
 import { SearchInput } from "../molecules/SearchInput";
 import { MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react";
@@ -13,22 +13,26 @@ import {
 
 export interface Column<T> {
     header: string;
-    accessorKey: keyof T;
+    accessorKey?: keyof T;
     cell?: (item: T) => React.ReactNode;
     sortable?: boolean;
+}
+
+interface Action<T> {
+    label: string;
+    onClick: (item: T) => void;
+    icon?: React.ReactNode;
+    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
 interface DataTableProps<T> {
     data: T[];
     columns: Column<T>[];
-    actions?: {
-        label: string;
-        onClick: (item: T) => void;
-        icon?: React.ReactNode;
-    }[];
+    actions?: Action<T>[];
     searchable?: boolean;
     searchPlaceholder?: string;
     className?: string;
+    isLoading?: boolean;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -38,6 +42,7 @@ export function DataTable<T extends { id: string | number }>({
     searchable = true,
     searchPlaceholder = "Search...",
     className,
+    isLoading = false,
 }: DataTableProps<T>) {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortConfig, setSortConfig] = useState<{
@@ -45,8 +50,27 @@ export function DataTable<T extends { id: string | number }>({
         direction: "asc" | "desc";
     }>({ key: null, direction: "asc" });
 
+    // Handle empty state
+    const renderEmptyState = () => (
+        <TableRow>
+            <TableCell
+                colSpan={columns.length + (actions ? 1 : 0)}
+                className="h-24 text-center"
+            >
+                {isLoading ? (
+                    <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="ml-2">Loading...</span>
+                    </div>
+                ) : (
+                    'No data available'
+                )}
+            </TableCell>
+        </TableRow>
+    );
+
     // Handle search
-    const filteredData = React.useMemo(() => {
+    const filteredData = useMemo(() => {
         if (!searchQuery) return data;
         return data.filter((item) =>
             Object.values(item).some(
@@ -57,32 +81,31 @@ export function DataTable<T extends { id: string | number }>({
     }, [data, searchQuery]);
 
     // Handle sorting
-    const sortedData = React.useMemo(() => {
+    const sortedData = useMemo(() => {
         if (!sortConfig.key) return filteredData;
+
         return [...filteredData].sort((a, b) => {
-            const aValue = a[sortConfig.key!];
-            const bValue = b[sortConfig.key!];
+            const aValue = sortConfig.key ? a[sortConfig.key] : '';
+            const bValue = sortConfig.key ? b[sortConfig.key] : '';
 
-            if (aValue === bValue) return 0;
-
-            if (sortConfig.direction === "asc") {
-                return aValue < bValue ? -1 : 1;
-            } else {
-                return aValue > bValue ? -1 : 1;
+            if (aValue < bValue) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
             }
+            if (aValue > bValue) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
         });
     }, [filteredData, sortConfig]);
 
-    const handleSort = (key: keyof T) => {
-        setSortConfig((current) => {
-            if (current.key === key) {
-                return {
-                    key,
-                    direction: current.direction === "asc" ? "desc" : "asc",
-                };
-            }
-            return { key, direction: "asc" };
-        });
+    const handleSort = (key: keyof T | undefined) => {
+        if (!key) return;
+        
+        setSortConfig((prev) => ({
+            key,
+            direction:
+                prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+        }));
     };
 
     return (
@@ -101,21 +124,21 @@ export function DataTable<T extends { id: string | number }>({
                         <TableRow>
                             {columns.map((column) => (
                                 <TableHead key={column.header.toString()}>
-                                    {column.sortable ? (
+                                    {column.sortable && column.accessorKey ? (
                                         <Button
                                             variant="ghost"
-                                            onClick={() => handleSort(column.accessorKey)}
+                                            onClick={() => handleSort(column.accessorKey as keyof T)}
                                             className="flex items-center gap-1 p-0 font-medium hover:bg-transparent"
                                         >
                                             {column.header}
                                             {sortConfig.key === column.accessorKey && (
-                                                <>
-                                                    {sortConfig.direction === "asc" ? (
+                                                <span className="ml-1">
+                                                    {sortConfig.direction === 'asc' ? (
                                                         <ChevronUp className="h-4 w-4" />
                                                     ) : (
                                                         <ChevronDown className="h-4 w-4" />
                                                     )}
-                                                </>
+                                                </span>
                                             )}
                                         </Button>
                                     ) : (
@@ -128,24 +151,19 @@ export function DataTable<T extends { id: string | number }>({
                     </TableHeader>
                     <TableBody>
                         {sortedData.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length + (actions ? 1 : 0)}
-                                    className="h-24 text-center"
-                                >
-                                    No results found.
-                                </TableCell>
-                            </TableRow>
+                            renderEmptyState()
                         ) : (
                             sortedData.map((row) => (
                                 <TableRow key={row.id.toString()}>
                                     {columns.map((column) => (
                                         <TableCell
-                                            key={`${row.id}-${column.accessorKey.toString()}`}
+                                            key={`${row.id}-${column.accessorKey?.toString() || column.header}`}
                                         >
-                                            {column.cell
-                                                ? column.cell(row)
-                                                : (row[column.accessorKey] as React.ReactNode)}
+                                            {column.cell ? (
+                                                column.cell(row)
+                                            ) : column.accessorKey ? (
+                                                <span>{String(row[column.accessorKey])}</span>
+                                            ) : null}
                                         </TableCell>
                                     ))}
                                     {actions && (
@@ -165,6 +183,10 @@ export function DataTable<T extends { id: string | number }>({
                                                         <DropdownMenuItem
                                                             key={index}
                                                             onClick={() => action.onClick(row)}
+                                                            className={cn(
+                                                                "flex items-center",
+                                                                action.variant === 'destructive' && "text-destructive focus:text-destructive-foreground focus:bg-destructive"
+                                                            )}
                                                         >
                                                             {action.icon && (
                                                                 <span className="mr-2">

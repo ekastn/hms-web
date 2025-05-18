@@ -1,111 +1,122 @@
-import type { MedicalRecord } from "../types/medicalRecord";
-import { generateId } from "../utils";
+import type { 
+    MedicalRecord, 
+    CreateMedicalRecordRequest, 
+    UpdateMedicalRecordRequest 
+} from "../../types/medicalRecord";
+import { api } from "./client";
 
-// Mock data
-const mockMedicalRecords: MedicalRecord[] = [
-    {
-        id: "mr1",
-        patientId: "p1",
-        patientName: "John Smith",
-        doctorId: "d1",
-        doctorName: "Dr. Jane Smith",
-        date: "2023-05-15",
-        recordType: "Physical Examination",
-        description: "Annual physical examination",
-        diagnosis: "Hypertension, well-controlled",
-        treatment: "Continue current medication regimen",
-        notes: "Patient reports feeling well overall",
-    },
-    {
-        id: "mr2",
-        patientId: "p2",
-        patientName: "Sarah Johnson",
-        doctorId: "d3",
-        doctorName: "Dr. Emily Williams",
-        date: "2023-04-28",
-        recordType: "Consultation",
-        description: "Initial consultation for asthma symptoms",
-        diagnosis: "Mild persistent asthma",
-        treatment: "Prescribed albuterol inhaler for as-needed use",
-        notes: "Patient to return in 3 months for follow-up",
-    },
-    {
-        id: "mr3",
-        patientId: "p3",
-        patientName: "Michael Brown",
-        doctorId: "d4",
-        doctorName: "Dr. Michael Brown",
-        date: "2023-02-10",
-        recordType: "Physical Therapy Assessment",
-        description: "Assessment for arthritis management",
-        diagnosis: "Osteoarthritis of the knees and hands",
-        treatment: "Physical therapy twice weekly for 6 weeks",
-        notes: "Patient reports increased pain in right knee",
-    },
-];
-
-// Get all medical records
-export const getMedicalRecords = (): Promise<MedicalRecord[]> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve([...mockMedicalRecords]);
-        }, 500);
-    });
+/**
+ * Get all medical records
+ * @returns Promise with array of medical records
+ */
+export const getMedicalRecords = async (): Promise<MedicalRecord[]> => {
+    try {
+        const response = await api.get<MedicalRecord[]>('/records');
+        return response;
+    } catch (error) {
+        console.error('Error fetching medical records:', error);
+        throw new Error('Failed to fetch medical records');
+    }
 };
 
-// Get medical record by ID
-export const getMedicalRecordById = (id: string): Promise<MedicalRecord | undefined> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const record = mockMedicalRecords.find((r) => r.id === id);
-            resolve(record ? { ...record } : undefined);
-        }, 500);
-    });
+/**
+ * Get medical record by ID
+ * @param id Record ID
+ * @returns Promise with the medical record or undefined if not found
+ */
+export const getMedicalRecordById = async (id: string): Promise<MedicalRecord> => {
+    try {
+        const response = await api.get<MedicalRecord>(`/records/${id}`);
+        return response;
+    } catch (error) {
+        console.error(`Error fetching medical record ${id}:`, error);
+        throw new Error('Failed to fetch medical record');
+    }
 };
 
-// Add new medical record
-export const addMedicalRecord = (record: Omit<MedicalRecord, "id">): Promise<MedicalRecord> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const newRecord = {
-                ...record,
-                id: generateId(),
-            };
-            mockMedicalRecords.push(newRecord);
-            resolve({ ...newRecord });
-        }, 500);
-    });
+/**
+ * Get medical records by patient ID
+ * @param patientId Patient ID
+ * @returns Promise with array of medical records for the patient
+ */
+export const getMedicalRecordsByPatientId = async (patientId: string): Promise<MedicalRecord[]> => {
+    try {
+        const response = await api.get<MedicalRecord[]>(`/records/patient/${patientId}`);
+        return response;
+    } catch (error) {
+        console.error(`Error fetching medical records for patient ${patientId}:`, error);
+        throw new Error('Failed to fetch patient medical records');
+    }
 };
 
-// Update medical record
-export const updateMedicalRecord = (
+/**
+ * Create a new medical record
+ * @param record Medical record data without ID
+ * @returns Promise with the created medical record
+ */
+export const createMedicalRecord = async (
+    record: CreateMedicalRecordRequest
+): Promise<MedicalRecord> => {
+    try {
+        const response = await api.post<MedicalRecord>('/records', record);
+        return response;
+    } catch (error) {
+        console.error('Error creating medical record:', error);
+        throw new Error('Failed to create medical record');
+    }
+};
+
+/**
+ * Update a medical record
+ * @param id Record ID
+ * @param updates Updated fields
+ * @returns Promise with the updated medical record
+ */
+export const updateMedicalRecord = async (
     id: string,
-    updates: Partial<MedicalRecord>
-): Promise<MedicalRecord | undefined> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const index = mockMedicalRecords.findIndex((r) => r.id === id);
-            if (index !== -1) {
-                mockMedicalRecords[index] = { ...mockMedicalRecords[index], ...updates };
-                resolve({ ...mockMedicalRecords[index] });
-            } else {
-                resolve(undefined);
-            }
-        }, 500);
-    });
+    updates: UpdateMedicalRecordRequest
+): Promise<MedicalRecord> => {
+    try {
+        const response = await api.put<MedicalRecord>(`/records/${id}`, updates);
+        return response;
+    } catch (error) {
+        console.error(`Error updating medical record ${id}:`, error);
+        throw new Error('Failed to update medical record');
+    }
 };
 
-// Delete medical record
-export const deleteMedicalRecord = (id: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const index = mockMedicalRecords.findIndex((r) => r.id === id);
-            if (index !== -1) {
-                mockMedicalRecords.splice(index, 1);
-                resolve(true);
-            } else {
-                resolve(false);
-            }
-        }, 500);
-    });
+/**
+ * Delete a medical record
+ * @param id Record ID
+ * @returns Promise that resolves to true if deleted successfully
+ */
+export const deleteMedicalRecord = async (id: string): Promise<boolean> => {
+    try {
+        await api.delete(`/records/${id}`);
+        return true;
+    } catch (error) {
+        console.error(`Error deleting medical record ${id}:`, error);
+        throw new Error('Failed to delete medical record');
+    }
+};
+
+/**
+ * Get medical records by date range
+ * @param startDate Start date in ISO string format
+ * @param endDate End date in ISO string format
+ * @returns Promise with array of medical records in the date range
+ */
+export const getMedicalRecordsByDateRange = async (
+    startDate: string,
+    endDate: string
+): Promise<MedicalRecord[]> => {
+    try {
+        const response = await api.get<MedicalRecord[]>(
+            `/records/date-range?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}`
+        );
+        return response;
+    } catch (error) {
+        console.error('Error fetching medical records by date range:', error);
+        throw new Error('Failed to fetch medical records by date range');
+    }
 };

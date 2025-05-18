@@ -8,8 +8,9 @@ import type { Doctor } from "../types/doctor";
 import { getDoctors, deleteDoctor } from "../lib/api/doctors";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { AddDoctorForm } from "../components/organisms/forms/AddDoctorForm";
-import { Button } from "..//components/ui/button";
+import { Button } from "../components/ui/button";
 import { toast } from "sonner";
+import { formatAvailability } from "../utils/dateTime";
 
 const DoctorsPage: React.FC = () => {
     const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -27,10 +28,15 @@ const DoctorsPage: React.FC = () => {
         setLoading(true);
         try {
             const data = await getDoctors();
-            setDoctors(data);
+            // Ensure availability is always an array
+            const formattedDoctors = data.map(doctor => ({
+                ...doctor,
+                availability: Array.isArray(doctor.availability) ? doctor.availability : []
+            }));
+            setDoctors(formattedDoctors);
         } catch (error) {
-            toast("Failed to fetch doctors");
-            console.log(error);
+            console.error("Failed to fetch doctors:", error);
+            toast.error("Failed to fetch doctors");
         } finally {
             setLoading(false);
         }
@@ -48,17 +54,19 @@ const DoctorsPage: React.FC = () => {
         setDoctorToDelete(doctor);
         setDeleteDialogOpen(true);
     };
+    
+
 
     const confirmDeleteDoctor = async () => {
         if (!doctorToDelete) return;
 
         try {
             await deleteDoctor(doctorToDelete.id);
-            setDoctors((prev) => prev.filter((d) => d.id !== doctorToDelete.id));
-            toast("Doctor deleted");
+            await fetchDoctors();
+            toast.success("Doctor deleted successfully");
         } catch (error) {
-            toast("Failed to delete doctor");
-            console.log(error);
+            console.error("Error deleting doctor:", error);
+            toast.error("Failed to delete doctor");
         } finally {
             setDeleteDialogOpen(false);
             setDoctorToDelete(null);
@@ -93,9 +101,13 @@ const DoctorsPage: React.FC = () => {
             accessorKey: "phone",
         },
         {
-            header: "Patients",
-            accessorKey: "patients",
-            sortable: true,
+            header: "Availability",
+            accessorKey: "availability",
+            cell: (doctor) => (
+                <div className="max-w-xs truncate" title={formatAvailability(doctor.availability)}>
+                    {formatAvailability(doctor.availability)}
+                </div>
+            ),
         },
     ];
 
@@ -135,6 +147,7 @@ const DoctorsPage: React.FC = () => {
                 columns={columns}
                 actions={actions}
                 searchPlaceholder="Search doctors..."
+                isLoading={loading}
             />
 
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -143,10 +156,9 @@ const DoctorsPage: React.FC = () => {
                         <DialogTitle>Add New Doctor</DialogTitle>
                     </DialogHeader>
                     <AddDoctorForm
-                        onSuccess={(newDoctor) => {
-                            setDoctors((prev) => [...prev, newDoctor]);
+                        onSuccess={() => {
+                            fetchDoctors();
                             setIsAddDialogOpen(false);
-                            toast("Doctor added");
                         }}
                         onCancel={() => setIsAddDialogOpen(false)}
                     />

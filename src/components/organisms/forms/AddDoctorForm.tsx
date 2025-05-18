@@ -1,27 +1,61 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FormField } from "../../molecules/FormField";
-import { addDoctor } from "../../../lib/api/doctors";
-import type { Doctor } from "../../../types/doctor";
+import { createDoctor } from "../../../lib/api/doctors";
+import type { CreateDoctorRequest, TimeSlot } from "../../../types/doctor";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+// Helper to create default time slots
+const createDefaultTimeSlots = (): TimeSlot[] => {
+    const now = new Date();
+    const defaultStart = new Date(now);
+    defaultStart.setHours(9, 0, 0, 0);
+    
+    const defaultEnd = new Date(now);
+    defaultEnd.setHours(17, 0, 0, 0);
+    
+    const defaultStartISO = defaultStart.toISOString();
+    const defaultEndISO = defaultEnd.toISOString();
+    
+    return [
+        {
+            dayOfWeek: 1, // Monday
+            startTime: defaultStartISO,
+            endTime: defaultEndISO
+        },
+        {
+            dayOfWeek: 3, // Wednesday
+            startTime: defaultStartISO,
+            endTime: defaultEndISO
+        },
+        {
+            dayOfWeek: 5, // Friday
+            startTime: defaultStartISO,
+            endTime: defaultEndISO
+        }
+    ];
+};
 
 interface AddDoctorFormProps {
-    onSuccess: (doctor: Doctor) => void;
+    onSuccess: () => void;
     onCancel: () => void;
 }
 
 export const AddDoctorForm: React.FC<AddDoctorFormProps> = ({ onSuccess, onCancel }) => {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<Omit<CreateDoctorRequest, 'availability'>>({
         name: "",
         specialty: "",
         email: "",
-        phone: "",
-        availability: ["Monday", "Wednesday", "Friday"],
+        phone: ""
     });
+    
+    // We'll use the default time slots but won't modify them in this simple form
+    const availability = useMemo(() => createDefaultTimeSlots(), []);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         // Clear error when field is edited
@@ -61,23 +95,25 @@ export const AddDoctorForm: React.FC<AddDoctorFormProps> = ({ onSuccess, onCance
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!validateForm()) return;
-
-        setIsSubmitting(true);
-        try {
-            const newDoctor = await addDoctor({
-                ...formData,
-                patients: 0,
-            });
-            onSuccess(newDoctor);
-        } catch (error) {
-            console.log(error);
-            setErrors({
-                submit: "Failed to add doctor. Please try again.",
-            });
-        } finally {
-            setIsSubmitting(false);
+        
+        if (validateForm()) {
+            setIsSubmitting(true);
+            try {
+                await createDoctor({
+                    ...formData,
+                    availability
+                });
+                toast.success("Doctor added successfully");
+                onSuccess();
+            } catch (error) {
+                console.error("Error adding doctor:", error);
+                toast.error("Failed to add doctor");
+                setErrors({
+                    form: "Failed to add doctor. Please try again.",
+                });
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -85,56 +121,61 @@ export const AddDoctorForm: React.FC<AddDoctorFormProps> = ({ onSuccess, onCance
         <form onSubmit={handleSubmit} className="space-y-4">
             <FormField
                 id="name"
-                name="name"
                 label="Name"
+                name="name"
                 value={formData.name}
-                onChange={handleChange}
-                placeholder="Dr. John Doe"
+                onChange={(e) => handleChange(e as React.ChangeEvent<HTMLInputElement>)}
                 error={errors.name}
                 required
             />
 
             <FormField
                 id="specialty"
-                name="specialty"
                 label="Specialty"
+                name="specialty"
                 value={formData.specialty}
-                onChange={handleChange}
-                placeholder="Cardiology"
+                onChange={(e) => handleChange(e as React.ChangeEvent<HTMLInputElement>)}
                 error={errors.specialty}
                 required
             />
 
             <FormField
                 id="email"
-                name="email"
                 label="Email"
+                name="email"
                 type="email"
                 value={formData.email}
-                onChange={handleChange}
-                placeholder="john.doe@hospital.com"
+                onChange={(e) => handleChange(e as React.ChangeEvent<HTMLInputElement>)}
                 error={errors.email}
                 required
             />
 
             <FormField
                 id="phone"
-                name="phone"
                 label="Phone"
+                name="phone"
                 value={formData.phone}
-                onChange={handleChange}
-                placeholder="(555) 123-4567"
+                onChange={(e) => handleChange(e as React.ChangeEvent<HTMLInputElement>)}
                 error={errors.phone}
                 required
             />
 
             {errors.submit && <p className="text-destructive text-sm">{errors.submit}</p>}
 
-            <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel}>
+            <div className="flex justify-end gap-2 mt-6">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    disabled={isSubmitting}
+                >
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
                     {isSubmitting ? "Adding..." : "Add Doctor"}
                 </Button>
             </div>

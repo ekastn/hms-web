@@ -1,182 +1,230 @@
 import type React from "react";
 import { useState } from "react";
 import { FormField } from "@/components/molecules/FormField";
-import { addPatient } from "@/lib/api/patients";
-import type { Patient } from "@/types/patient";
+import { createPatient } from "@/lib/api/patients";
+import type { Patient, CreatePatientRequest } from "@/types/patient";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface AddPatientFormProps {
-    onSuccess: (patient: Patient) => void;
-    onCancel: () => void;
+  onSuccess: (patient: Patient) => void;
+  onCancel: () => void;
 }
 
 export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCancel }) => {
-    const [formData, setFormData] = useState({
-        name: "",
-        age: "",
-        gender: "Male" as Patient["gender"],
-        email: "",
-        phone: "",
-        address: "",
-    });
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<Omit<CreatePatientRequest, 'age'> & { age: string }>({
+    name: "",
+    age: "",
+    gender: "male",
+    email: "",
+    phone: "",
+    address: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        // Clear error when field is edited
-        if (errors[name]) {
-            setErrors((prev) => {
-                const newErrors = { ...prev };
-                delete newErrors[name];
-                return newErrors;
-            });
-        }
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {};
+    // Clear error when field is edited
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
 
-        if (!formData.name.trim()) {
-            newErrors.name = "Name is required";
-        }
+    // Clear submit error when any field changes
+    if (submitError) {
+      setSubmitError(null);
+    }
+  };
 
-        if (!formData.age.trim()) {
-            newErrors.age = "Age is required";
-        } else if (isNaN(Number(formData.age)) || Number(formData.age) <= 0) {
-            newErrors.age = "Age must be a positive number";
-        }
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
 
-        if (!formData.email.trim()) {
-            newErrors.email = "Email is required";
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = "Email is invalid";
-        }
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters";
+    }
 
-        if (!formData.phone.trim()) {
-            newErrors.phone = "Phone is required";
-        }
+    if (!formData.age.trim()) {
+      newErrors.age = "Age is required";
+    } else if (isNaN(Number(formData.age)) || Number(formData.age) <= 0) {
+      newErrors.age = "Age must be a positive number";
+    } else if (Number(formData.age) > 120) {
+      newErrors.age = "Age must be less than 120";
+    }
 
-        if (!formData.address.trim()) {
-            newErrors.address = "Address is required";
-        }
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^[0-9+\-\s()]{8,20}$/.test(formData.phone)) {
+      newErrors.phone = "Please enter a valid phone number (8-20 digits, may include +-() and spaces)";
+    }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    } else if (formData.address.trim().length < 5) {
+      newErrors.address = "Address is too short";
+    }
 
-        if (!validateForm()) return;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-        setIsSubmitting(true);
-        try {
-            const newPatient = await addPatient({
-                ...formData,
-                age: Number(formData.age),
-                lastVisit: new Date().toISOString().split("T")[0],
-                appointments: [],
-                medicalHistory: [],
-            });
-            onSuccess(newPatient);
-        } catch (error) {
-            setErrors({
-                submit: "Failed to add patient. Please try again.",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <FormField
-                id="name"
-                label="Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="John Smith"
-                error={errors.name}
-                required
-            />
+    if (!validateForm()) return;
 
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    id="age"
-                    label="Age"
-                    name="age"
-                    type="number"
-                    value={formData.age}
-                    onChange={handleChange}
-                    placeholder="45"
-                    error={errors.age}
-                    required
-                />
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-                <div className="space-y-2">
-                    <label htmlFor="gender" className="text-sm font-medium">
-                        Gender
-                    </label>
-                    <select
-                        id="gender"
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleChange}
-                        className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        required
-                    >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-            </div>
+    try {
+      const patientData: CreatePatientRequest = {
+        ...formData,
+        age: parseInt(formData.age, 10),
+      };
 
-            <FormField
-                id="email"
-                label="Email"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="john.smith@example.com"
-                error={errors.email}
-                required
-            />
+      const newPatient = await createPatient(patientData);
+      toast.success("Patient created successfully");
+      onSuccess(newPatient);
+    } catch (error) {
+      console.error("Error creating patient:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to create patient. Please try again.";
+      setSubmitError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-            <FormField
-                id="phone"
-                label="Phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="(555) 123-4567"
-                error={errors.phone}
-                required
-            />
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <FormField
+        id="name"
+        label="Full Name"
+        name="name"
+        value={formData.name}
+        onChange={handleChange as any}
+        placeholder="John Doe"
+        error={errors.name}
+        required
+        autoFocus
+      />
 
-            <FormField
-                id="address"
-                label="Address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="123 Main St, Anytown, USA"
-                error={errors.address}
-                required
-            />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          id="age"
+          label="Age"
+          name="age"
+          type="number"
+          min="0"
+          max="120"
+          value={formData.age}
+          onChange={handleChange as any}
+          placeholder="30"
+          error={errors.age}
+          required
+        />
 
-            <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel}>
-                    Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Adding..." : "Add Patient"}
-                </Button>
-            </div>
-        </form>
-    );
+        <FormField
+          id="gender"
+          label="Gender"
+          name="gender"
+          as="select"
+          value={formData.gender}
+          onChange={handleChange as any}
+          error={errors.gender}
+          required
+          options={[
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
+            { value: 'other', label: 'Other' },
+            { value: 'prefer-not-to-say', label: 'Prefer not to say' },
+          ]}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          id="email"
+          label="Email Address"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange as any}
+          placeholder="john.doe@example.com"
+          error={errors.email}
+          required
+        />
+
+        <FormField
+          id="phone"
+          label="Phone Number"
+          name="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={handleChange as any}
+          placeholder="+1 (555) 123-4567"
+          error={errors.phone}
+          required
+        />
+      </div>
+
+      <FormField
+        id="address"
+        label="Full Address"
+        name="address"
+        value={formData.address}
+        onChange={handleChange as any}
+        placeholder="123 Main Street, Apartment 4B, New York, NY 10001, USA"
+        error={errors.address}
+        required
+      />
+
+      {submitError && (
+        <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">
+          {submitError}
+        </div>
+      )}
+
+      <div className="flex justify-end space-x-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+          className="px-4 py-2"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-6 py-2"
+        >
+          {isSubmitting ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Adding...
+            </span>
+          ) : 'Add Patient'}
+        </Button>
+      </div>
+    </form>
+  );
 };

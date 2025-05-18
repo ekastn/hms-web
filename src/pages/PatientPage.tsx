@@ -1,31 +1,32 @@
-import {
-    Activity,
-    ArrowLeft,
-    Calendar,
-    Edit,
-    Mail,
-    MapPin,
-    Phone,
-    Trash,
-    User,
-} from "lucide-react";
-import type React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
-import { EditPatientForm } from "../components/organisms/forms/EditPatientForm";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { deletePatient, getPatientById } from "../lib/api/patients";
-import type { Patient } from "../types/patient";
+import { deletePatient, getPatientDetail } from "../lib/api/patients";
+import type { PatientDetailResponse } from "../types/patient";
+import { 
+  ArrowLeft,
+  Calendar,
+  Edit,
+  Mail as MailIcon,
+  MapPin,
+  Phone,
+  Trash2,
+  User,
+} from "lucide-react";
+import { EditPatientForm } from "../components/organisms/forms/EditPatientForm";
+import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
 
 const PatientPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [patient, setPatient] = useState<Patient | null>(null);
+    const [patientDetail, setPatientDetail] = useState<PatientDetailResponse | null>(null);
+    const patient = patientDetail?.patient || null;
+    const recentAppointments = patientDetail?.recentAppointments || [];
+    const medicalHistory = patientDetail?.medicalHistory || [];
     const [loading, setLoading] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,21 +46,23 @@ const PatientPage: React.FC = () => {
     }, [searchParams]);
 
     const fetchPatient = async (patientId: string) => {
-        setLoading(true);
-        try {
-            const data = await getPatientById(patientId);
-            if (data) {
-                setPatient(data);
-            } else {
-                toast("Patient not found");
-                navigate("/patients");
-            }
-        } catch (error) {
-            toast("Failed to fetch patient details");
-            console.log(error);
-        } finally {
-            setLoading(false);
+      setLoading(true);
+      try {
+        const data = await getPatientDetail(patientId);
+        if (data?.patient) {
+          setPatientDetail(data);
+        } else {
+          toast.error("Patient not found");
+          navigate("/patients");
         }
+      } catch (error) {
+        console.error("Error fetching patient:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to load patient details";
+        toast.error(errorMessage);
+        navigate("/patients");
+      } finally {
+        setLoading(false);
+      }
     };
 
     const handleEdit = () => {
@@ -72,18 +75,19 @@ const PatientPage: React.FC = () => {
     };
 
     const confirmDelete = async () => {
-        if (!patient) return;
+      if (!patient) return;
 
-        try {
-            await deletePatient(patient.id);
-            toast("Patient deleted");
-            navigate("/patients");
-        } catch (error) {
-            console.log(error);
-            toast("Failed to delete patient");
-        } finally {
-            setDeleteDialogOpen(false);
-        }
+      try {
+        await deletePatient(patient.id);
+        toast.success("Patient deleted successfully");
+        navigate("/patients");
+      } catch (error) {
+        console.error("Error deleting patient:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to delete patient";
+        toast.error(errorMessage);
+      } finally {
+        setDeleteDialogOpen(false);
+      }
     };
 
     const closeEditDialog = () => {
@@ -91,7 +95,7 @@ const PatientPage: React.FC = () => {
         setSearchParams({});
     };
 
-    if (loading) {
+    if (loading || !patient) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="text-center">
@@ -137,7 +141,7 @@ const PatientPage: React.FC = () => {
                         Edit
                     </Button>
                     <Button variant="destructive" onClick={handleDelete}>
-                        <Trash className="h-4 w-4 mr-2" />
+                        <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                     </Button>
                 </div>
@@ -160,13 +164,13 @@ const PatientPage: React.FC = () => {
 
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" />
+                                <Trash2 className="h-4 w-4 text-muted-foreground" />
                                 <span>
                                     {patient.age} years old • {patient.gender}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <MailIcon className="h-4 w-4 text-muted-foreground" />
                                 <span>{patient.email}</span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -196,52 +200,30 @@ const PatientPage: React.FC = () => {
                         <TabsContent value="appointments" className="mt-4">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Recent Appointments</CardTitle>
+                                    <CardTitle>Appointments</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
-                                        {patient.appointments && patient.appointments.length > 0 ? (
-                                            patient.appointments.map((appointment, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center gap-4 rounded-lg border p-3"
-                                                >
-                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                        <Calendar className="h-5 w-5 text-primary" />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <p className="font-medium">
-                                                            {appointment.doctorName}
-                                                        </p>
-                                                        <p className="text-sm">
-                                                            {appointment.type}
-                                                        </p>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {new Date(
-                                                                appointment.date
-                                                            ).toLocaleDateString()}{" "}
-                                                            at {appointment.time}
-                                                        </p>
-                                                    </div>
-                                                    <div
-                                                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                                            appointment.status === "Completed"
-                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                                                : appointment.status === "Scheduled"
-                                                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                                                        }`}
-                                                    >
-                                                        {appointment.status}
+                                    {recentAppointments.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {recentAppointments.map((appointment, index) => (
+                                                <div key={index} className="border rounded-lg p-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <h4 className="font-medium">{appointment.type}</h4>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {new Date(appointment.dateTime).toLocaleString()}
+                                                            </p>
+                                                        </div>
+                                                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                                                            {appointment.status}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-muted-foreground">
-                                                No appointments found.
-                                            </p>
-                                        )}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">No appointments found.</p>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -251,37 +233,21 @@ const PatientPage: React.FC = () => {
                                     <CardTitle>Medical History</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
-                                        {patient.medicalHistory &&
-                                        patient.medicalHistory.length > 0 ? (
-                                            patient.medicalHistory.map((record, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-start gap-4 rounded-lg border p-3"
-                                                >
-                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mt-1">
-                                                        <Activity className="h-5 w-5 text-primary" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium">
-                                                            {record.condition}
-                                                        </p>
-                                                        <p className="text-sm">{record.notes}</p>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Diagnosed:{" "}
-                                                            {new Date(
-                                                                record.diagnosedDate
-                                                            ).toLocaleDateString()}
-                                                        </p>
-                                                    </div>
+                                    {medicalHistory.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {medicalHistory.map((record: any, index: number) => (
+                                                <div key={index} className="border rounded-lg p-4">
+                                                    <h4 className="font-medium">{record.diagnosis || 'Medical Record'}</h4>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {record.date ? new Date(record.date).toLocaleDateString() : 'No date'}
+                                                    </p>
+                                                    {record.notes && <p className="mt-2">{record.notes}</p>}
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-muted-foreground">
-                                                No medical history found.
-                                            </p>
-                                        )}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">No medical history found.</p>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -298,9 +264,8 @@ const PatientPage: React.FC = () => {
                         <EditPatientForm
                             patient={patient}
                             onSuccess={(updatedPatient) => {
-                                setPatient(updatedPatient);
+                                setPatientDetail(prev => prev ? { ...prev, patient: updatedPatient } : null);
                                 closeEditDialog();
-                                toast("Patient updated");
                             }}
                             onCancel={closeEditDialog}
                         />

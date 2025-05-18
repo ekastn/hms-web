@@ -160,11 +160,11 @@ const MedicalRecordDetailPage: React.FC = () => {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
-                                <span>Patient: {record.patientName}</span>
+                                <span>Patient ID: {record.patientId}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
-                                <span>Doctor: {record.doctorName}</span>
+                                <span>Doctor ID: {record.doctorId}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />

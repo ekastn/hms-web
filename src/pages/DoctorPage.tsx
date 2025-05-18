@@ -1,10 +1,11 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Edit, Trash, Calendar, Users, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Edit, Trash, Calendar, Users, Mail, Phone, Clock } from "lucide-react";
+import { formatTimeSlot } from "../utils/dateTime";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
-import type { Doctor } from "../types/doctor";
+import type { DoctorDetailResponse } from "../types/doctor";
 import { getDoctorById, deleteDoctor } from "../lib/api/doctors";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { EditDoctorForm } from "../components/organisms/forms/EditDoctorForm";
@@ -14,7 +15,8 @@ import { toast } from "sonner";
 const DoctorPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [doctor, setDoctor] = useState<Doctor | null>(null);
+    const [doctor, setDoctor] = useState<DoctorDetailResponse | null>(null);
+    const [showRecentPatients, setShowRecentPatients] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -37,7 +39,18 @@ const DoctorPage: React.FC = () => {
         try {
             const data = await getDoctorById(doctorId);
             if (data) {
-                setDoctor(data);
+                // If the data has recentPatients, it's a DoctorDetailResponse
+                if ('recentPatients' in data) {
+                    setDoctor(data as DoctorDetailResponse);
+                    setShowRecentPatients(true);
+                } else {
+                    // Otherwise, it's a basic Doctor, convert it to DoctorDetailResponse
+                    setDoctor({
+                        ...data,
+                        recentPatients: []
+                    });
+                    setShowRecentPatients(false);
+                }
             } else {
                 toast("Doctor not found");
                 navigate("/doctors");
@@ -156,14 +169,36 @@ const DoctorPage: React.FC = () => {
                                 <Phone className="h-4 w-4 text-muted-foreground" />
                                 <span>{doctor.phone}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <span>Available: {doctor.availability.join(", ")}</span>
+                            <div className="flex items-start gap-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                                <div>
+                                    <p className="font-medium mb-1">Availability:</p>
+                                    {doctor.availability.length > 0 ? (
+                                        <ul className="space-y-1 text-sm">
+                                            {doctor.availability.map((slot, index) => (
+                                                <li key={`${slot.dayOfWeek}-${slot.startTime}-${index}`} className="flex items-center gap-2">
+                                                    <Clock className="h-3 w-3 text-muted-foreground" />
+                                                    <span>{
+                                                        formatTimeSlot({
+                                                            dayOfWeek: slot.dayOfWeek,
+                                                            startTime: slot.startTime,
+                                                            endTime: slot.endTime
+                                                        })
+                                                    }</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">No availability set</p>
+                                    )}
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                                <span>{doctor.patients} Patients</span>
-                            </div>
+                            {showRecentPatients && doctor?.recentPatients && (
+                                <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-muted-foreground" />
+                                    <span>Recent Patients: {doctor.recentPatients.length}</span>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -205,7 +240,10 @@ const DoctorPage: React.FC = () => {
                         <EditDoctorForm
                             doctor={doctor}
                             onSuccess={(updatedDoctor) => {
-                                setDoctor(updatedDoctor);
+                                setDoctor({
+                                    ...updatedDoctor,
+                                    recentPatients: doctor.recentPatients || []
+                                });
                                 closeEditDialog();
                                 toast("Doctor updated");
                             }}
@@ -228,5 +266,6 @@ const DoctorPage: React.FC = () => {
         </div>
     );
 };
+
 
 export default DoctorPage;

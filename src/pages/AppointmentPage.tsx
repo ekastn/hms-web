@@ -23,13 +23,19 @@ import {
     deleteAppointment,
     updateAppointmentStatus,
 } from "../lib/api/appointments";
+import { getPatientById } from "../lib/api/patients";
+import { getDoctorById } from "../lib/api/doctors";
 import type { Appointment } from "../types/appointment";
+import type { Patient } from "../types/patient";
+import type { Doctor } from "../types/doctor";
 import { toast } from "sonner";
 
 const AppointmentPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
     const [appointment, setAppointment] = useState<Appointment | null>(null);
+    const [patient, setPatient] = useState<Patient | null>(null);
+    const [doctor, setDoctor] = useState<Doctor | null>(null);
     const [loading, setLoading] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -58,13 +64,22 @@ const AppointmentPage: React.FC = () => {
             const data = await getAppointmentById(appointmentId);
             if (data) {
                 setAppointment(data);
+                
+                // Fetch patient and doctor details in parallel
+                const [patientData, doctorData] = await Promise.all([
+                    getPatientById(data.patientId).catch(() => null),
+                    getDoctorById(data.doctorId).catch(() => null)
+                ]);
+                
+                setPatient(patientData || null);
+                setDoctor(doctorData || null);
             } else {
-                toast("Appointment not found");
+                toast.error("Appointment not found");
                 navigate("/appointments");
             }
         } catch (error) {
-            console.log(error);
-            toast("Failed to fetch appointment details");
+            console.error("Error fetching appointment details:", error);
+            toast.error("Failed to fetch appointment details");
         } finally {
             setLoading(false);
         }
@@ -202,19 +217,19 @@ const AppointmentPage: React.FC = () => {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <span>Date: {new Date(appointment.date).toLocaleDateString()}</span>
+                                <span>Date: {new Date(appointment.dateTime).toLocaleDateString()}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span>Time: {appointment.time}</span>
+                                <span>Time: {new Date(appointment.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
-                                <span>Patient: {appointment.patientName}</span>
+                                <span>Patient: {patient?.name || `Patient (${appointment.patientId.substring(0, 6)}...)`}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
-                                <span>Doctor: {appointment.doctorName}</span>
+                                <span>Doctor: {doctor?.name ? `Dr. ${doctor.name}` : `Doctor (${appointment.doctorId.substring(0, 6)}...)`}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -292,10 +307,10 @@ const AppointmentPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-semibold">
-                                        {appointment.patientName}
+                                        {patient?.name || `Patient ${appointment.patientId.substring(0, 6)}`}
                                     </h3>
                                     <p className="text-sm text-muted-foreground">
-                                        Patient ID: {appointment.patientId}
+                                        {patient?.email || 'No email available'}
                                     </p>
                                 </div>
                             </div>

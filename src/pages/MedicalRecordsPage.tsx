@@ -6,13 +6,19 @@ import { DataTable, type Column } from "../components/organisms/DataTable";
 import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
 import type { MedicalRecord } from "../types/medicalRecord";
 import { getMedicalRecords, deleteMedicalRecord } from "../lib/api/medicalRecords";
+import { getPatients } from "../lib/api/patients";
+import { getDoctors } from "../lib/api/doctors";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { AddMedicalRecordForm } from "../components/organisms/forms/AddMedicalRecordForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import type { Patient } from "../types/patient";
+import type { Doctor } from "../types/doctor";
 
 const MedicalRecordsPage: React.FC = () => {
     const [records, setRecords] = useState<MedicalRecord[]>([]);
+    const [patients, setPatients] = useState<Record<string, Patient>>({});
+    const [doctors, setDoctors] = useState<Record<string, Doctor>>({});
     const [loading, setLoading] = useState(true);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -21,21 +27,40 @@ const MedicalRecordsPage: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchMedicalRecords();
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [recs, pts, docs] = await Promise.all([
+                    getMedicalRecords(),
+                    getPatients(),
+                    getDoctors()
+                ]);
+                
+                setRecords(recs);
+                
+                // Create a mapping of patient IDs to patient objects
+                const patientsMap = pts.reduce((acc, patient) => ({
+                    ...acc,
+                    [patient.id]: patient
+                }), {} as Record<string, Patient>);
+                setPatients(patientsMap);
+                
+                // Create a mapping of doctor IDs to doctor objects
+                const doctorsMap = docs.reduce((acc, doctor) => ({
+                    ...acc,
+                    [doctor.id]: doctor
+                }), {} as Record<string, Doctor>);
+                setDoctors(doctorsMap);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                toast.error("Failed to fetch data");
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchData();
     }, []);
-
-    const fetchMedicalRecords = async () => {
-        setLoading(true);
-        try {
-            const data = await getMedicalRecords();
-            setRecords(data);
-        } catch (error) {
-            toast("Failed to fetch medical records");
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleViewRecord = (record: MedicalRecord) => {
         navigate(`/records/${record.id}`);
@@ -68,15 +93,19 @@ const MedicalRecordsPage: React.FC = () => {
     const columns: Column<MedicalRecord>[] = [
         {
             header: "Patient",
-            accessorKey: "patientName",
-            cell: (record) => (
-                <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-4 w-4 text-primary" />
+            accessorKey: "patientId",
+            cell: (record) => {
+                const patient = patients[record.patientId];
+                const patientName = patient?.name || `Patient (${record.patientId.substring(0, 6)}...)`;
+                return (
+                    <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-4 w-4 text-primary" />
+                        </div>
+                        <span>{patientName}</span>
                     </div>
-                    <span>{record.patientName}</span>
-                </div>
-            ),
+                );
+            },
             sortable: true,
         },
         {
@@ -86,7 +115,11 @@ const MedicalRecordsPage: React.FC = () => {
         },
         {
             header: "Doctor",
-            accessorKey: "doctorName",
+            accessorKey: "doctorId",
+            cell: (record) => {
+                const doctor = doctors[record.doctorId];
+                return doctor?.name || `Doctor (${record.doctorId.substring(0, 6)}...)`;
+            },
         },
         {
             header: "Date",

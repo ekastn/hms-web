@@ -1,9 +1,28 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormField } from "../../molecules/FormField";
-import { addMedicalRecord } from "../../../lib/api/medicalRecords";
-import type { MedicalRecord } from "../../../types/medicalRecord";
+import { 
+    createMedicalRecord,
+    getMedicalRecordsByPatientId 
+} from "../../../lib/api/medicalRecords";
+import { getPatients } from "../../../lib/api/patients";
+import { getDoctors } from "../../../lib/api/doctors";
+import type { 
+    MedicalRecord, 
+    CreateMedicalRecordRequest,
+    MedicalRecordType
+} from "../../../types/medicalRecord";
+import type { Patient } from "../../../types/patient";
+import type { Doctor } from "../../../types/doctor";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from "@/components/ui/select";
 
 interface AddMedicalRecordFormProps {
     onSuccess: (record: MedicalRecord) => void;
@@ -14,17 +33,18 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
     onSuccess,
     onCancel,
 }) => {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<CreateMedicalRecordRequest>({
         patientId: "",
-        patientName: "",
         doctorId: "",
-        doctorName: "",
-        recordType: "",
+        recordType: "checkup",
         description: "",
         diagnosis: "",
         treatment: "",
         notes: "",
     });
+    const [patients, setPatients] = useState<Patient[]>([]);
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,19 +63,42 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
         }
     };
 
-    const validateForm = () => {
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                const [patientsData, doctorsData] = await Promise.all([
+                    getPatients(),
+                    getDoctors()
+                ]);
+                setPatients(patientsData);
+                setDoctors(doctorsData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                toast.error('Failed to load required data');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.patientName.trim()) {
-            newErrors.patientName = "Patient name is required";
+        if (!formData.patientId) {
+            newErrors.patientId = "Patient is required";
         }
 
-        if (!formData.doctorName.trim()) {
-            newErrors.doctorName = "Doctor name is required";
+        if (!formData.doctorId) {
+            newErrors.doctorId = "Doctor is required";
         }
 
-        if (!formData.recordType.trim()) {
+        if (!formData.recordType) {
             newErrors.recordType = "Record type is required";
+        } else if (!['checkup', 'followup', 'procedure', 'emergency'].includes(formData.recordType)) {
+            newErrors.recordType = "Invalid record type";
         }
 
         if (!formData.description.trim()) {
@@ -81,57 +124,103 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            // In a real app, we would get the patient and doctor IDs from a dropdown selection
-            const newRecord = await addMedicalRecord({
+            const newRecord = await createMedicalRecord({
                 ...formData,
-                patientId: "p1", // TODO: Mock ID
-                doctorId: "d1", // TODO: Mock ID for demo
-                date: new Date().toISOString().split("T")[0],
+                recordType: formData.recordType
             });
+            
+            toast.success('Medical record created successfully');
             onSuccess(newRecord);
         } catch (error) {
-            setErrors({
-                submit: "Failed to add medical record. Please try again.",
-            });
+            console.error('Error creating medical record:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to create medical record';
+            toast.error(errorMessage);
+            setErrors(prev => ({
+                ...prev,
+                submit: errorMessage
+            }));
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    if (isLoading) {
+        return <div className="flex justify-center p-8">Loading...</div>;
+    }
+
+
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            <FormField
-                id="patientName"
-                name="patientName"
-                label="Patient Name"
-                value={formData.patientName}
-                onChange={handleChange}
-                placeholder="John Smith"
-                error={errors.patientName}
-                required
-            />
+            <div className="space-y-2">
+                <label htmlFor="patientId" className="text-sm font-medium">
+                    Patient <span className="text-destructive">*</span>
+                </label>
+                <Select
+                    value={formData.patientId}
+                    onValueChange={(value: string) => setFormData(prev => ({ ...prev, patientId: value }))}
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a patient" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {patients.map((patient) => (
+                            <SelectItem key={patient.id} value={patient.id}>
+                                {patient.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {errors.patientId && (
+                    <p className="text-sm text-destructive">{errors.patientId}</p>
+                )}
+            </div>
 
-            <FormField
-                id="doctorName"
-                name="doctorName"
-                label="Doctor Name"
-                value={formData.doctorName}
-                onChange={handleChange}
-                placeholder="Dr. Jane Smith"
-                error={errors.doctorName}
-                required
-            />
+            <div className="space-y-2">
+                <label htmlFor="doctorId" className="text-sm font-medium">
+                    Doctor <span className="text-destructive">*</span>
+                </label>
+                <Select
+                    value={formData.doctorId}
+                    onValueChange={(value: string) => setFormData(prev => ({ ...prev, doctorId: value }))}
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a doctor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {doctors.map((doctor) => (
+                            <SelectItem key={doctor.id} value={doctor.id}>
+                                {doctor.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {errors.doctorId && (
+                    <p className="text-sm text-destructive">{errors.doctorId}</p>
+                )}
+            </div>
 
-            <FormField
-                id="recordType"
-                name="recordType"
-                label="Record Type"
-                value={formData.recordType}
-                onChange={handleChange}
-                placeholder="Physical Examination"
-                error={errors.recordType}
-                required
-            />
+            <div className="space-y-2">
+                <label htmlFor="recordType" className="text-sm font-medium">
+                    Record Type <span className="text-destructive">*</span>
+                </label>
+                <Select
+                    value={formData.recordType}
+                    onValueChange={(value: MedicalRecordType) => setFormData(prev => ({ ...prev, recordType: value }))}
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a record type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="checkup">Checkup</SelectItem>
+                        <SelectItem value="followup">Follow-up</SelectItem>
+                        <SelectItem value="procedure">Procedure</SelectItem>
+                        <SelectItem value="emergency">Emergency</SelectItem>
+                    </SelectContent>
+                </Select>
+                {errors.recordType && (
+                    <p className="text-sm text-destructive">{errors.recordType}</p>
+                )}
+            </div>
 
             <FormField
                 id="description"

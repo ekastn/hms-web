@@ -1,14 +1,56 @@
+// String enums for better type safety
+export const AppointmentStatus = {
+  Scheduled: 'Scheduled',
+  Confirmed: 'Confirmed',
+  Completed: 'Completed',
+  Cancelled: 'Cancelled'
+} as const;
+
+export type AppointmentStatus = typeof AppointmentStatus[keyof typeof AppointmentStatus];
+
+export const AppointmentType = {
+  CheckUp: 'check-up',
+  FollowUp: 'follow-up',
+  Consultation: 'consultation',
+  Procedure: 'procedure',
+  Emergency: 'emergency'
+} as const;
+
+export type AppointmentType = typeof AppointmentType[keyof typeof AppointmentType];
+
 export interface Appointment {
-    id: string;
-    patientId: string;
-    patientName: string;
-    doctorId: string;
-    doctorName: string;
-    date: string;
-    time: string;
-    type: string;
-    status: "Scheduled" | "Confirmed" | "Completed" | "Cancelled";
-    location: string;
-    notes?: string;
-    patientHistory?: string;
+  id: string;
+  patientId: string;
+  doctorId: string;
+  type: AppointmentType;
+  dateTime: string;
+  duration: number; // in minutes
+  status: AppointmentStatus;
+  location: string;
+  notes?: string;
+  patientHistory?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AppointmentDetailResponse {
+  appointment: Appointment;
+  patient?: any; // Importing Patient would cause circular dependency
+  lastRecord?: any; // TODO: Add MedicalRecord type when available
+}
+
+export interface CreateAppointmentRequest {
+  patientId: string;
+  doctorId: string;
+  type: AppointmentType;
+  dateTime: string;
+  duration: number;
+  location: string;
+  notes?: string;
+  patientHistory?: string;
+}
+
+export interface UpdateAppointmentRequest extends Partial<CreateAppointmentRequest> {
+  id: string;
+  status?: AppointmentStatus;
 }
