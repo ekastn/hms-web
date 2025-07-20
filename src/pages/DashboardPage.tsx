@@ -79,21 +79,32 @@ const DashboardPage: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {dashboardData.recentActivities && dashboardData.recentActivities.map((activity: ActivityType) => (
-                                <div key={activity.id} className="flex items-start gap-3">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                                        <Activity className="h-4 w-4 text-primary" />
+                            {dashboardData.recentActivities && dashboardData.recentActivities.length > 0 ? (
+                                dashboardData.recentActivities.slice(0, 5).map((activity: ActivityType) => (
+                                    <div key={activity.id} className="flex items-start gap-3">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                                            <Activity className="h-4 w-4 text-primary" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium">{activity.title}</p>
+                                            <p className="text-sm text-muted-foreground">{activity.description}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {new Date(activity.timestamp).toLocaleString()}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">{activity.title}</p>
-                                        <p className="text-sm text-muted-foreground">{activity.description}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {new Date(activity.timestamp).toLocaleString()}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p className="text-muted-foreground text-sm">No recent activities.</p>
+                            )}
                         </div>
+                        {dashboardData.recentActivities && dashboardData.recentActivities.length > 5 && (
+                            <div className="mt-4 text-center">
+                                <Button variant="outline" onClick={() => navigate("/activities")}>
+                                    View All Activities
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

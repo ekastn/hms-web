@@ -1,18 +1,19 @@
-import type React from "react";
-import { NavLink } from "react-router-dom";
-import {
-    LayoutDashboard,
-    Users,
-    UserRound,
-    Calendar,
-    FileText,
-    Settings,
-    LogOut,
-} from "lucide-react";
-import { cn } from "../../lib/utils";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Role } from "@/lib/types";
-import { Button } from "@/components/ui/button";
+import {
+    BookUser,
+    Calendar,
+    FileText,
+    LayoutDashboard,
+    LogOut,
+    ScanEye,
+    UserRound,
+    Users
+} from "lucide-react";
+import type React from "react";
+import { NavLink } from "react-router-dom";
+import { cn } from "../../lib/utils";
 
 interface SidebarLink {
     title: string;
@@ -48,9 +49,15 @@ const links: SidebarLink[] = [
         icon: <FileText className="h-5 w-5" />,
     },
     {
-        title: "User Management",
+        title: "Activity",
+        href: "/activities",
+        icon: <ScanEye className="h-5 w-5" />,
+        roles: [Role.Admin, Role.Management],
+    },
+    {
+        title: "Users",
         href: "/users",
-        icon: <Settings className="h-5 w-5" />,
+        icon: <BookUser className="h-5 w-5" />,
         roles: [Role.Admin],
     },
 ];

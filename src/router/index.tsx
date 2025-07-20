@@ -12,6 +12,7 @@ import MedicalRecordPage from "../pages/MedicalRecordPage";
 import LoginPage from "../pages/LoginPage";
 import ProtectedRoute from "./ProtectedRoute";
 import UsersPage from "../pages/UsersPage";
+import ActivitiesPage from "@/pages/ActivitiesPage";
 
 export const router = createBrowserRouter([
     {
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
                     { path: "records", element: <MedicalRecordsPage /> },
                     { path: "records/:id", element: <MedicalRecordPage /> },
                     { path: "users", element: <UsersPage /> },
+                    { path: "activities", element: <ActivitiesPage /> },
                 ],
             },
         ],
