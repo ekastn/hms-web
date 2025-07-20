@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 interface AddPatientFormProps {
-  onSuccess: (patient: Patient) => void;
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
@@ -96,9 +96,9 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
         age: parseInt(formData.age, 10),
       };
 
-      const newPatient = await createPatient(patientData);
+      createPatient(patientData);
       toast.success("Patient created successfully");
-      onSuccess(newPatient);
+      onSuccess();
     } catch (error) {
       console.error("Error creating patient:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to create patient. Please try again.";
@@ -148,10 +148,9 @@ export const AddPatientForm: React.FC<AddPatientFormProps> = ({ onSuccess, onCan
           error={errors.gender}
           required
           options={[
-            { value: 'male', label: 'Male' },
-            { value: 'female', label: 'Female' },
-            { value: 'other', label: 'Other' },
-            { value: 'prefer-not-to-say', label: 'Prefer not to say' },
+            { value: 'Male', label: 'Male' },
+            { value: 'Female', label: 'Female' },
+            { value: 'Other', label: 'Other' },
           ]}
         />
       </div>

@@ -233,8 +233,7 @@ const MedicalRecordsPage: React.FC = () => {
                         <DialogTitle>Add New Medical Record</DialogTitle>
                     </DialogHeader>
                     <AddMedicalRecordForm
-                        onSuccess={(newRecord) => {
-                            setRecords((prev) => [...prev, newRecord]);
+                        onSuccess={() => {
                             setIsAddDialogOpen(false);
                             toast("Medical record added");
                         }}

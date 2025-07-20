@@ -4,25 +4,21 @@ import { FormField } from "../../molecules/FormField";
 import { createMedicalRecord } from "@/services/medicalRecords";
 import { getPatients } from "@/services/patients";
 import { getDoctors } from "@/services/doctors";
-import type { 
-    MedicalRecord, 
-    CreateMedicalRecordRequest,
-    MedicalRecordType
-} from "@/lib/types";
+import type { MedicalRecord, CreateMedicalRecordRequest, MedicalRecordType } from "@/lib/types";
 import type { Patient } from "@/lib/types";
 import type { Doctor } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { 
-    Select, 
-    SelectContent, 
-    SelectItem, 
-    SelectTrigger, 
-    SelectValue 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 
 interface AddMedicalRecordFormProps {
-    onSuccess: (record: MedicalRecord) => void;
+    onSuccess: () => void;
     onCancel: () => void;
 }
 
@@ -66,13 +62,13 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                 setIsLoading(true);
                 const [patientsData, doctorsData] = await Promise.all([
                     getPatients(),
-                    getDoctors()
+                    getDoctors(),
                 ]);
                 setPatients(patientsData);
                 setDoctors(doctorsData);
             } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Failed to load required data');
+                console.error("Error fetching data:", error);
+                toast.error("Failed to load required data");
             } finally {
                 setIsLoading(false);
             }
@@ -94,7 +90,9 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
 
         if (!formData.recordType) {
             newErrors.recordType = "Record type is required";
-        } else if (!['checkup', 'followup', 'procedure', 'emergency'].includes(formData.recordType)) {
+        } else if (
+            !["checkup", "followup", "procedure", "emergency"].includes(formData.recordType)
+        ) {
             newErrors.recordType = "Invalid record type";
         }
 
@@ -121,20 +119,21 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            const newRecord = await createMedicalRecord({
+            await createMedicalRecord({
                 ...formData,
-                recordType: formData.recordType
+                recordType: formData.recordType,
             });
-            
-            toast.success('Medical record created successfully');
-            onSuccess(newRecord);
+
+            toast.success("Medical record created successfully");
+            onSuccess();
         } catch (error) {
-            console.error('Error creating medical record:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to create medical record';
+            console.error("Error creating medical record:", error);
+            const errorMessage =
+                error instanceof Error ? error.message : "Failed to create medical record";
             toast.error(errorMessage);
-            setErrors(prev => ({
+            setErrors((prev) => ({
                 ...prev,
-                submit: errorMessage
+                submit: errorMessage,
             }));
         } finally {
             setIsSubmitting(false);
@@ -145,7 +144,6 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
         return <div className="flex justify-center p-8">Loading...</div>;
     }
 
-
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -154,7 +152,12 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                 </label>
                 <Select
                     value={formData.patientId}
-                    onValueChange={(value: string) => setFormData((prev: CreateMedicalRecordRequest) => ({ ...prev, patientId: value }))}
+                    onValueChange={(value: string) =>
+                        setFormData((prev: CreateMedicalRecordRequest) => ({
+                            ...prev,
+                            patientId: value,
+                        }))
+                    }
                 >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a patient" />
@@ -167,9 +170,7 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                         ))}
                     </SelectContent>
                 </Select>
-                {errors.patientId && (
-                    <p className="text-sm text-destructive">{errors.patientId}</p>
-                )}
+                {errors.patientId && <p className="text-sm text-destructive">{errors.patientId}</p>}
             </div>
 
             <div className="space-y-2">
@@ -178,7 +179,12 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                 </label>
                 <Select
                     value={formData.doctorId}
-                    onValueChange={(value: string) => setFormData((prev: CreateMedicalRecordRequest) => ({ ...prev, doctorId: value }))}
+                    onValueChange={(value: string) =>
+                        setFormData((prev: CreateMedicalRecordRequest) => ({
+                            ...prev,
+                            doctorId: value,
+                        }))
+                    }
                 >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a doctor" />
@@ -191,9 +197,7 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                         ))}
                     </SelectContent>
                 </Select>
-                {errors.doctorId && (
-                    <p className="text-sm text-destructive">{errors.doctorId}</p>
-                )}
+                {errors.doctorId && <p className="text-sm text-destructive">{errors.doctorId}</p>}
             </div>
 
             <div className="space-y-2">
@@ -202,7 +206,12 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                 </label>
                 <Select
                     value={formData.recordType}
-                    onValueChange={(value: MedicalRecordType) => setFormData((prev: CreateMedicalRecordRequest) => ({ ...prev, recordType: value }))}
+                    onValueChange={(value: MedicalRecordType) =>
+                        setFormData((prev: CreateMedicalRecordRequest) => ({
+                            ...prev,
+                            recordType: value,
+                        }))
+                    }
                 >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a record type" />

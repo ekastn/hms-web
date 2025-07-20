@@ -273,10 +273,10 @@ const AppointmentsPage: React.FC = () => {
                         <DialogTitle>Add New Appointment</DialogTitle>
                     </DialogHeader>
                     <AddAppointmentForm
-                        onSuccess={(newAppointment) => {
-                            setAppointments((prev) => [...prev, newAppointment]);
+                        onSuccess={() => {
                             setIsAddDialogOpen(false);
                             toast("Appointment added");
+                            fetchData();
                         }}
                         onCancel={() => setIsAddDialogOpen(false)}
                     />

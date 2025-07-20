@@ -57,10 +57,9 @@ export const getMedicalRecordsByPatientId = async (patientId: string): Promise<M
  */
 export const createMedicalRecord = async (
     record: CreateMedicalRecordRequest
-): Promise<MedicalRecord> => {
+): Promise<void> => {
     try {
-        const response = await api.post<ApiResponse<MedicalRecord>>('/records', record);
-        return response.data;
+        await api.post('/records', record);
     } catch (error) {
         console.error('Error creating medical record:', error);
         throw new Error('Failed to create medical record');

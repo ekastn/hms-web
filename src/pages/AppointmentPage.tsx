@@ -102,7 +102,7 @@ const AppointmentPage: React.FC = () => {
             toast("Appointment deleted");
             navigate("/appointments");
         } catch (error) {
-            toast("Failed to delete appointment");
+            toast(error.message);
         } finally {
             setDeleteDialogOpen(false);
         }

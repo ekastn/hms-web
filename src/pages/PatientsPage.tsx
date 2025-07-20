@@ -24,18 +24,18 @@ const PatientsPage: React.FC = () => {
     }, []);
 
     const fetchPatients = async () => {
-    setLoading(true);
-    try {
-      const data = await getPatients();
-      setPatients(data);
-    } catch (error) {
-      console.error("Error fetching patients:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to load patients";
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setLoading(true);
+        try {
+            const data = await getPatients();
+            setPatients(data);
+        } catch (error) {
+            console.error("Error fetching patients:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to load patients";
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleViewPatient = (patient: Patient) => {
         navigate(`/patients/${patient.id}`);
@@ -51,20 +51,21 @@ const PatientsPage: React.FC = () => {
     };
 
     const confirmDeletePatient = async () => {
-      if (!patientToDelete) return;
+        if (!patientToDelete) return;
 
-      try {
-        await deletePatient(patientToDelete.id);
-        setPatients((prev) => prev.filter((p) => p.id !== patientToDelete.id));
-        toast.success("Patient deleted successfully");
-      } catch (error) {
-        console.error("Error deleting patient:", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to delete patient";
-        toast.error(errorMessage);
-      } finally {
-        setDeleteDialogOpen(false);
-        setPatientToDelete(null);
-      }
+        try {
+            await deletePatient(patientToDelete.id);
+            setPatients((prev) => prev.filter((p) => p.id !== patientToDelete.id));
+            toast.success("Patient deleted successfully");
+        } catch (error) {
+            console.error("Error deleting patient:", error);
+            const errorMessage =
+                error instanceof Error ? error.message : "Failed to delete patient";
+            toast.error(errorMessage);
+        } finally {
+            setDeleteDialogOpen(false);
+            setPatientToDelete(null);
+        }
     };
 
     const columns: Column<Patient>[] = [
@@ -128,7 +129,7 @@ const PatientsPage: React.FC = () => {
                 </div>
                 <Button onClick={() => setIsAddDialogOpen(true)} disabled={loading}>
                     <Plus className="h-4 w-4 mr-2" />
-                    {loading ? 'Loading...' : 'Add Patient'}
+                    {loading ? "Loading..." : "Add Patient"}
                 </Button>
             </div>
 
@@ -164,10 +165,10 @@ const PatientsPage: React.FC = () => {
                         <DialogTitle>Add New Patient</DialogTitle>
                     </DialogHeader>
                     <AddPatientForm
-                        onSuccess={(newPatient) => {
-                            setPatients((prev) => [...prev, newPatient]);
+                        onSuccess={() => {
                             setIsAddDialogOpen(false);
                             toast("Patient added");
+                            fetchPatients();
                         }}
                         onCancel={() => setIsAddDialogOpen(false)}
                     />
