@@ -1,4 +1,3 @@
-
 export interface Activity {
     id: string;
     type: string; // e.g., "APPOINTMENT", "MEDICAL_RECORD"

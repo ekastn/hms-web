@@ -3,7 +3,7 @@ import type {
   CreateDoctorRequest, 
   UpdateDoctorRequest,
   DoctorDetailResponse 
-} from "../../types/doctor";
+} from "../types/doctor";
 import { api } from "./client";
 
 // Get all doctors

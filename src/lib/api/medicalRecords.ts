@@ -2,7 +2,7 @@ import type {
     MedicalRecord, 
     CreateMedicalRecordRequest, 
     UpdateMedicalRecordRequest 
-} from "../../types/medicalRecord";
+} from "../types/medicalRecord";
 import { api } from "./client";
 
 /**

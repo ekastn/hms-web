@@ -1,3 +1,6 @@
+import { Patient } from "./patient";
+import { MedicalRecord } from "./medicalRecord";
+
 // String enums for better type safety
 export const AppointmentStatus = {
   Scheduled: 'Scheduled',
@@ -35,8 +38,8 @@ export interface Appointment {
 
 export interface AppointmentDetailResponse {
   appointment: Appointment;
-  patient?: any; // Importing Patient would cause circular dependency
-  lastRecord?: any; // TODO: Add MedicalRecord type when available
+  patient?: Patient;
+  lastRecord?: MedicalRecord;
 }
 
 export interface CreateAppointmentRequest {
@@ -51,6 +54,5 @@ export interface CreateAppointmentRequest {
 }
 
 export interface UpdateAppointmentRequest extends Partial<CreateAppointmentRequest> {
-  id: string;
   status?: AppointmentStatus;
 }
