@@ -18,7 +18,7 @@ interface ConfirmDialogProps {
     description: string;
     confirmText?: string;
     cancelText?: string;
-    variant?: "delete" | "save";
+    variant?: "delete" | "save" | "default" | "destructive";
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -43,7 +43,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                     <AlertDialogAction
                         onClick={onConfirm}
                         className={
-                            variant === "delete" ? "bg-destructive hover:bg-destructive/90" : ""
+                            variant === "destructive" ? "bg-destructive hover:bg-destructive/90" : ""
                         }
                     >
                         {confirmText}

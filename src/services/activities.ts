@@ -1,7 +1,7 @@
+import type { Activity } from "@/lib/types";
 import { api } from "../lib/api";
-import type { ApiResponse, Activity } from "@/lib/types";
 
 export const getActivities = async (): Promise<Activity[]> => {
-    const response = await api.get<ApiResponse<Activity[]>>("/activities");
+    const response = await api.get<Activity[]>("/activities");
     return response.data;
 };

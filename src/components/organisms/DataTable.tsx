@@ -19,10 +19,10 @@ export interface Column<T> {
 }
 
 interface Action<T> {
-    label: string;
+    label: string | ((item: T) => string);
     onClick: (item: T) => void;
-    icon?: React.ReactNode;
-    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+    icon?: React.ReactNode | ((item: T) => React.ReactNode);
+    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | any;
 }
 
 interface DataTableProps<T> {

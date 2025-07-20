@@ -20,7 +20,7 @@ export const AddUserForm: React.FC<AddUserFormProps> = ({ onSuccess, onCancel })
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));

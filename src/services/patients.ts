@@ -1,27 +1,26 @@
-import type { 
-  Patient, 
-  CreatePatientRequest, 
-  UpdatePatientRequest,
-  PatientDetailResponse,
-  ApiResponse
+import type {
+    CreatePatientRequest,
+    Patient,
+    PatientDetailResponse,
+    UpdatePatientRequest
 } from "@/lib/types";
 import { api } from "../lib/api";
 
 // Get all patients
 export const getPatients = async (): Promise<Patient[]> => {
-  const response = await api.get<ApiResponse<Patient[]>>('/patients');
+  const response = await api.get<Patient[]>('/patients');
   return response.data;
 };
 
 // Get patient by ID
 export const getPatientById = async (id: string): Promise<Patient> => {
-  const response = await api.get<ApiResponse<Patient>>(`/patients/${id}`);
+  const response = await api.get<Patient>(`/patients/${id}`);
   return response.data;
 };
 
 // Get detailed patient information
 export const getPatientDetail = async (id: string): Promise<PatientDetailResponse> => {
-  const response = await api.get<ApiResponse<PatientDetailResponse>>(`/patients/${id}/detail`);
+  const response = await api.get<PatientDetailResponse>(`/patients/${id}/detail`);
   return response.data;
 };
 
@@ -29,7 +28,7 @@ export const getPatientDetail = async (id: string): Promise<PatientDetailRespons
 export const createPatient = async (
   patient: CreatePatientRequest
 ): Promise<Patient> => {
-  const response = await api.post<ApiResponse<Patient>>('/patients', patient);
+  const response = await api.post<Patient>('/patients', patient);
   return response.data;
 };
 
@@ -38,7 +37,7 @@ export const updatePatient = async (
   id: string,
   updates: UpdatePatientRequest
 ): Promise<void> => {
-  await api.put<ApiResponse<Patient>>(`/patients/${id}`, updates);
+  await api.put<void>(`/patients/${id}`, updates);
 };
 
 // Delete patient

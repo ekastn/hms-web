@@ -4,11 +4,15 @@ import { CardStats } from "../components/molecules/CardStats";
 import { Users, UserRound, Calendar, FileText, Activity, User } from "lucide-react";
 import { getDashboardStats } from "../services/dashboard";
 import type { DashboardResponse, Activity as ActivityType, UpcomingAppointment } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const DashboardPage: React.FC = () => {
     const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -98,7 +102,7 @@ const DashboardPage: React.FC = () => {
                                 <p className="text-muted-foreground text-sm">No recent activities.</p>
                             )}
                         </div>
-                        {dashboardData.recentActivities && dashboardData.recentActivities.length > 5 && (
+                        {dashboardData.recentActivities && (
                             <div className="mt-4 text-center">
                                 <Button variant="outline" onClick={() => navigate("/activities")}>
                                     View All Activities

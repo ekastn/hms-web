@@ -12,7 +12,7 @@ import { api } from "../lib/api";
  */
 export const getMedicalRecords = async (): Promise<MedicalRecord[]> => {
     try {
-        const response = await api.get<ApiResponse<MedicalRecord[]>>('/records');
+        const response = await api.get<MedicalRecord[]>('/records');
         return response.data;
     } catch (error) {
         console.error('Error fetching medical records:', error);
@@ -27,7 +27,7 @@ export const getMedicalRecords = async (): Promise<MedicalRecord[]> => {
  */
 export const getMedicalRecordById = async (id: string): Promise<MedicalRecord> => {
     try {
-        const response = await api.get<ApiResponse<MedicalRecord>>(`/records/${id}`);
+        const response = await api.get<MedicalRecord>(`/records/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching medical record ${id}:`, error);
@@ -42,7 +42,7 @@ export const getMedicalRecordById = async (id: string): Promise<MedicalRecord> =
  */
 export const getMedicalRecordsByPatientId = async (patientId: string): Promise<MedicalRecord[]> => {
     try {
-        const response = await api.get<ApiResponse<MedicalRecord[]>>(`/records/patient/${patientId}`);
+        const response = await api.get<MedicalRecord[]>(`/records/patient/${patientId}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching medical records for patient ${patientId}:`, error);
@@ -77,7 +77,7 @@ export const updateMedicalRecord = async (
     updates: UpdateMedicalRecordRequest
 ): Promise<void> => {
     try {
-        await api.put<ApiResponse<MedicalRecord>>(`/records/${id}`, updates);
+        await api.put<MedicalRecord>(`/records/${id}`, updates);
     } catch (error) {
         console.error(`Error updating medical record ${id}:`, error);
         throw new Error('Failed to update medical record');
@@ -110,7 +110,7 @@ export const getMedicalRecordsByDateRange = async (
     endDate: string
 ): Promise<MedicalRecord[]> => {
     try {
-        const response = await api.get<ApiResponse<MedicalRecord[]>>(
+        const response = await api.get<MedicalRecord[]>(
             `/records/date-range?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}`
         );
         return response.data;

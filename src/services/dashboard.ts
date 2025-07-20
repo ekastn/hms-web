@@ -1,9 +1,9 @@
-import type { DashboardResponse, ApiResponse } from "@/lib/types";
+import type { DashboardResponse } from "@/lib/types";
 import { api } from "../lib/api";
 
 export const getDashboardStats = async (): Promise<DashboardResponse> => {
     try {
-        const response = await api.get<ApiResponse<DashboardResponse>>('/dashboard');
+        const response = await api.get<DashboardResponse>('/dashboard');
         return response.data;
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
