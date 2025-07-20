@@ -7,9 +7,9 @@ import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
 import { DataTable, type Column } from "../components/organisms/DataTable";
 import { AddPatientForm } from "../components/organisms/forms/AddPatientForm";
 import { Button } from "../components/ui/button";
-import { deletePatient, getPatients } from "../lib/api/patients";
+import { deletePatient, getPatients } from "../services/patients";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
-import type { Patient } from "../types/patient";
+import type { Patient } from "@/lib/types";
 
 const PatientsPage: React.FC = () => {
     const [patients, setPatients] = useState<Patient[]>([]);

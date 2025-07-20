@@ -1,8 +1,8 @@
 import type React from "react";
 import { useState } from "react";
 import { FormField } from "../../molecules/FormField";
-import { updateMedicalRecord } from "../../../lib/api/medicalRecords";
-import type { MedicalRecord } from "../../../types/medicalRecord";
+import { updateMedicalRecord } from "@/services/medicalRecords";
+import type { MedicalRecord } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 interface EditMedicalRecordFormProps {
@@ -26,7 +26,7 @@ export const EditMedicalRecordForm: React.FC<EditMedicalRecordFormProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         // Clear error when field is edited
@@ -130,20 +130,16 @@ export const EditMedicalRecordForm: React.FC<EditMedicalRecordFormProps> = ({
                 required
             />
 
-            <div className="space-y-2">
-                <label htmlFor="notes" className="text-sm font-medium">
-                    Notes
-                </label>
-                <textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    placeholder="Additional notes about the medical record"
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    rows={3}
-                />
-            </div>
+            <FormField
+                id="notes"
+                name="notes"
+                label="Notes"
+                as="textarea"
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder="Additional notes about the medical record"
+                rows={3}
+            />
 
             {errors.submit && <p className="text-destructive text-sm">{errors.submit}</p>}
 

@@ -1,5 +1,5 @@
-import { Patient } from "./patient";
-import { MedicalRecord } from "./medicalRecord";
+import type { Patient } from "./patient";
+import type { MedicalRecord } from "./medicalRecord";
 
 // String enums for better type safety
 export const AppointmentStatus = {

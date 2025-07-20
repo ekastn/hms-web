@@ -1,8 +1,8 @@
 import type React from "react";
 import { useState } from "react";
 import { FormField } from "@/components/molecules/FormField";
-import { createPatient } from "@/lib/api/patients";
-import type { Patient, CreatePatientRequest } from "@/types/patient";
+import { createPatient } from "@/services/patients";
+import type { Patient, CreatePatientRequest } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 

@@ -1,8 +1,8 @@
 import type React from "react";
 import { useState } from "react";
 import { FormField } from "../../molecules/FormField";
-import { updatePatient } from "../../../lib/api/patients";
-import type { Patient } from "../../../types/patient";
+import { updatePatient } from "@/services/patients";
+import type { Patient } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 interface EditPatientFormProps {
@@ -27,7 +27,7 @@ export const EditPatientForm: React.FC<EditPatientFormProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         // Clear error when field is edited
@@ -122,23 +122,21 @@ export const EditPatientForm: React.FC<EditPatientFormProps> = ({
                     required
                 />
 
-                <div className="space-y-2">
-                    <label htmlFor="gender" className="text-sm font-medium">
-                        Gender
-                    </label>
-                    <select
-                        id="gender"
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleChange}
-                        className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        required
-                    >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
+                <FormField
+                    id="gender"
+                    label="Gender"
+                    name="gender"
+                    as="select"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    error={errors.gender}
+                    required
+                    options={[
+                        { value: 'Male', label: 'Male' },
+                        { value: 'Female', label: 'Female' },
+                        { value: 'Other', label: 'Other' },
+                    ]}
+                />
             </div>
 
             <FormField

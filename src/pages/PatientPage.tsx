@@ -5,8 +5,8 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { deletePatient, getPatientDetail } from "../lib/api/patients";
-import type { PatientDetailResponse } from "../types/patient";
+import { deletePatient, getPatientDetail } from "../services/patients";
+import type { PatientDetailResponse } from "@/lib/types";
 import { 
   ArrowLeft,
   Calendar,
@@ -164,7 +164,7 @@ const PatientPage: React.FC = () => {
 
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                <User className="h-4 w-4 text-muted-foreground" />
                                 <span>
                                     {patient.age} years old • {patient.gender}
                                 </span>
@@ -209,7 +209,7 @@ const PatientPage: React.FC = () => {
                                                 <div key={index} className="border rounded-lg p-4">
                                                     <div className="flex justify-between items-start">
                                                         <div>
-                                                            <h4 className="font-medium">{appointment.type}</h4>
+                                                            <h4>{appointment.type}</h4>
                                                             <p className="text-sm text-muted-foreground">
                                                                 {new Date(appointment.dateTime).toLocaleString()}
                                                             </p>

@@ -15,8 +15,8 @@ import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
 import { EditMedicalRecordForm } from "../components/organisms/forms/EditMedicalRecordForm";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
-import { deleteMedicalRecord, getMedicalRecordById } from "../lib/api/medicalRecords";
-import type { MedicalRecord } from "../types/medicalRecord";
+import { deleteMedicalRecord, getMedicalRecordById } from "../services/medicalRecords";
+import type { MedicalRecord } from "@/lib/types";
 
 const MedicalRecordDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();

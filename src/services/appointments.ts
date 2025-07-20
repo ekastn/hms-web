@@ -3,30 +3,35 @@ import type {
   CreateAppointmentRequest,
   UpdateAppointmentRequest,
   AppointmentDetailResponse,
-  AppointmentStatus
-} from "@/types/appointment";
-import { api } from "./client";
+  AppointmentStatus,
+  ApiResponse
+} from "@/lib/types";
+import { api } from "../lib/api";
 
 // Get all appointments with pagination and filters
 export const getAppointments = async (): Promise<Appointment[]> => {
-  return api.get<Appointment[]>('/appointments');
+  const response = await api.get<ApiResponse<Appointment[]>>('/appointments');
+  return response.data;
 };
 
 // Get appointment by ID
 export const getAppointmentById = async (id: string): Promise<Appointment> => {
-  return api.get<Appointment>(`/appointments/${id}`);
+  const response = await api.get<ApiResponse<Appointment>>(`/appointments/${id}`);
+  return response.data;
 };
 
 // Get detailed appointment information
 export const getAppointmentDetail = async (id: string): Promise<AppointmentDetailResponse> => {
-  return api.get<AppointmentDetailResponse>(`/appointments/${id}/detail`);
+  const response = await api.get<ApiResponse<AppointmentDetailResponse>>(`/appointments/${id}/detail`);
+  return response.data;
 };
 
 // Create new appointment
 export const createAppointment = async (
   appointment: CreateAppointmentRequest
 ): Promise<Appointment> => {
-  return api.post<Appointment>('/appointments', appointment);
+  const response = await api.post<ApiResponse<Appointment>>('/appointments', appointment);
+  return response.data;
 };
 
 // Update appointment
@@ -34,7 +39,8 @@ export const updateAppointment = async (
   id: string,
   updates: UpdateAppointmentRequest
 ): Promise<Appointment> => {
-  return api.put<Appointment>(`/appointments/${id}`, updates);
+  const response = await api.put<ApiResponse<Appointment>>(`/appointments/${id}`, updates);
+  return response.data;
 };
 
 // Update appointment status
@@ -42,7 +48,8 @@ export const updateAppointmentStatus = async (
   id: string,
   status: AppointmentStatus
 ): Promise<Appointment> => {
-  return api.put<Appointment>(`/appointments/${id}/status`, { status });
+  const response = await api.put<ApiResponse<Appointment>>(`/appointments/${id}/status`, { status });
+  return response.data;
 };
 
 // Delete appointment

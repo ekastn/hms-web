@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { CardStats } from "../components/molecules/CardStats";
 import { Users, UserRound, Calendar, FileText, Activity, User } from "lucide-react";
-import { getDashboardStats } from "../lib/api/dashboard";
-import type { DashboardResponse, Activity as ActivityType, UpcomingAppointment } from "../types/dashboard";
+import { getDashboardStats } from "../services/dashboard";
+import type { DashboardResponse, Activity as ActivityType, UpcomingAppointment } from "@/lib/types";
 
 const DashboardPage: React.FC = () => {
     const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
@@ -14,7 +14,6 @@ const DashboardPage: React.FC = () => {
         const loadDashboardData = async () => {
             try {
                 const response = await getDashboardStats();
-                // The API returns the data directly, no need to access a data property
                 setDashboardData(response);
             } catch (err) {
                 setError('Failed to load dashboard data');
@@ -39,18 +38,6 @@ const DashboardPage: React.FC = () => {
         </div>;
     }
 
-    // Destructure the dashboard data with default values
-    const { 
-        stats = {
-            patientsCount: 0,
-            doctorsCount: 0,
-            appointmentsCount: 0,
-            medicalRecordsCount: 0
-        }, 
-        recentActivities = [], 
-        upcomingAppointments = [] 
-    } = dashboardData || {};
-    
     return (
         <div className="space-y-6">
             <div>
@@ -61,25 +48,25 @@ const DashboardPage: React.FC = () => {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <CardStats
                     title="Total Patients"
-                    value={stats.patientsCount || 0}
+                    value={dashboardData.stats.patientsCount || 0}
                     icon={<Users className="h-4 w-4 text-muted-foreground" />}
                     trend={{ value: 0, isPositive: true }}
                 />
                 <CardStats
                     title="Total Doctors"
-                    value={stats.doctorsCount || 0}
+                    value={dashboardData.stats.doctorsCount || 0}
                     icon={<UserRound className="h-4 w-4 text-muted-foreground" />}
                     trend={{ value: 0, isPositive: true }}
                 />
                 <CardStats
                     title="Appointments"
-                    value={stats.appointmentsCount || 0}
+                    value={dashboardData.stats.appointmentsCount || 0}
                     icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
                     trend={{ value: 0, isPositive: true }}
                 />
                 <CardStats
                     title="Medical Records"
-                    value={stats.medicalRecordsCount || 0}
+                    value={dashboardData.stats.medicalRecordsCount || 0}
                     icon={<FileText className="h-4 w-4 text-muted-foreground" />}
                     trend={{ value: 0, isPositive: true }}
                 />
@@ -92,7 +79,7 @@ const DashboardPage: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {recentActivities.map((activity: ActivityType) => (
+                            {dashboardData.recentActivities && dashboardData.recentActivities.map((activity: ActivityType) => (
                                 <div key={activity.id} className="flex items-start gap-3">
                                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                                         <Activity className="h-4 w-4 text-primary" />
@@ -116,7 +103,7 @@ const DashboardPage: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {upcomingAppointments.map((appointment: UpcomingAppointment) => (
+                            {dashboardData.upcomingAppointments && dashboardData.upcomingAppointments.map((appointment: UpcomingAppointment) => (
                                 <div key={appointment.id} className="flex items-start gap-3">
                                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                                         <User className="h-4 w-4 text-primary" />

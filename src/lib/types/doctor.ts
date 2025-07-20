@@ -1,4 +1,4 @@
-import { Patient } from "./patient";
+import type { Patient } from "./patient";
 
 export interface TimeSlot {
     dayOfWeek: number; // 0-6 (Sunday-Saturday)

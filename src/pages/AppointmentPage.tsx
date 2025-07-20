@@ -22,12 +22,12 @@ import {
     getAppointmentById,
     deleteAppointment,
     updateAppointmentStatus,
-} from "../lib/api/appointments";
-import { getPatientById } from "../lib/api/patients";
-import { getDoctorById } from "../lib/api/doctors";
-import type { Appointment } from "../types/appointment";
-import type { Patient } from "../types/patient";
-import type { Doctor } from "../types/doctor";
+} from "../services/appointments";
+import { getPatientById } from "../services/patients";
+import { getDoctorById } from "../services/doctors";
+import type { Appointment } from "@/lib/types";
+import type { Patient } from "@/lib/types";
+import type { Doctor } from "@/lib/types";
 import { toast } from "sonner";
 
 const AppointmentPage: React.FC = () => {

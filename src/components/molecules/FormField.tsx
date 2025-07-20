@@ -2,6 +2,7 @@ import React from "react";
 import { Input } from "../atoms/Input";
 import { cn } from "../../lib/utils";
 import { Label } from "../ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 type InputElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 
@@ -29,7 +30,7 @@ interface FormFieldProps {
   max?: string | number;
   step?: string | number;
   rows?: number;
-  as?: 'input' | 'select';
+  as?: 'input' | 'select' | 'textarea';
   options?: Array<{ value: string; label: string }>;
 }
 
@@ -53,6 +54,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   step,
   as = 'input',
   options = [],
+  rows,
 }) => {
   const inputId = id || name || '';
   const inputName = name || id || '';
@@ -82,23 +84,36 @@ export const FormField: React.FC<FormFieldProps> = ({
       </Label>
       
       {as === 'select' ? (
-        <select
+        <Select
+          value={String(commonProps.value)}
+          onValueChange={(val) => onChange && onChange({ target: { name: commonProps.name, value: val } } as React.ChangeEvent<HTMLSelectElement>)}
+          disabled={commonProps.disabled}
+        >
+          <SelectTrigger
+            id={commonProps.id}
+            name={commonProps.name}
+            className={commonProps.className}
+          >
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : as === 'textarea' ? (
+        <textarea
           {...commonProps}
+          rows={rows}
+          placeholder={placeholder}
           className={cn(
-            'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background',
-            'file:border-0 file:bg-transparent file:text-sm file:font-medium',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-            'disabled:cursor-not-allowed disabled:opacity-50',
+            'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
             commonProps.className
           )}
-        >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        />
       ) : (
         <Input
           {...commonProps}

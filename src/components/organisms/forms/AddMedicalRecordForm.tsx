@@ -1,19 +1,16 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { FormField } from "../../molecules/FormField";
-import { 
-    createMedicalRecord,
-    getMedicalRecordsByPatientId 
-} from "../../../lib/api/medicalRecords";
-import { getPatients } from "../../../lib/api/patients";
-import { getDoctors } from "../../../lib/api/doctors";
+import { createMedicalRecord } from "@/services/medicalRecords";
+import { getPatients } from "@/services/patients";
+import { getDoctors } from "@/services/doctors";
 import type { 
     MedicalRecord, 
     CreateMedicalRecordRequest,
     MedicalRecordType
-} from "../../../types/medicalRecord";
-import type { Patient } from "../../../types/patient";
-import type { Doctor } from "../../../types/doctor";
+} from "@/lib/types";
+import type { Patient } from "@/lib/types";
+import type { Doctor } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
@@ -52,10 +49,10 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData((prev: CreateMedicalRecordRequest) => ({ ...prev, [name]: value }));
         // Clear error when field is edited
         if (errors[name]) {
-            setErrors((prev) => {
+            setErrors((prev: Record<string, string>) => {
                 const newErrors = { ...prev };
                 delete newErrors[name];
                 return newErrors;
@@ -157,7 +154,7 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                 </label>
                 <Select
                     value={formData.patientId}
-                    onValueChange={(value: string) => setFormData(prev => ({ ...prev, patientId: value }))}
+                    onValueChange={(value: string) => setFormData((prev: CreateMedicalRecordRequest) => ({ ...prev, patientId: value }))}
                 >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a patient" />
@@ -181,7 +178,7 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                 </label>
                 <Select
                     value={formData.doctorId}
-                    onValueChange={(value: string) => setFormData(prev => ({ ...prev, doctorId: value }))}
+                    onValueChange={(value: string) => setFormData((prev: CreateMedicalRecordRequest) => ({ ...prev, doctorId: value }))}
                 >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a doctor" />
@@ -205,7 +202,7 @@ export const AddMedicalRecordForm: React.FC<AddMedicalRecordFormProps> = ({
                 </label>
                 <Select
                     value={formData.recordType}
-                    onValueChange={(value: MedicalRecordType) => setFormData(prev => ({ ...prev, recordType: value }))}
+                    onValueChange={(value: MedicalRecordType) => setFormData((prev: CreateMedicalRecordRequest) => ({ ...prev, recordType: value }))}
                 >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a record type" />

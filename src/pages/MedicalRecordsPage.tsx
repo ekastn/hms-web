@@ -1,19 +1,17 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Edit, Trash, Plus, FileText, User, Calendar, Download } from "lucide-react";
+import { Eye, Edit, Trash, Plus, User, Calendar, Download } from "lucide-react";
 import { DataTable, type Column } from "../components/organisms/DataTable";
 import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
-import type { MedicalRecord } from "../types/medicalRecord";
-import { getMedicalRecords, deleteMedicalRecord } from "../lib/api/medicalRecords";
-import { getPatients } from "../lib/api/patients";
-import { getDoctors } from "../lib/api/doctors";
+import type { MedicalRecord, Patient, Doctor } from "@/lib/types";
+import { getMedicalRecords, deleteMedicalRecord } from "../services/medicalRecords";
+import { getPatients } from "../services/patients";
+import { getDoctors } from "../services/doctors";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { AddMedicalRecordForm } from "../components/organisms/forms/AddMedicalRecordForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { Patient } from "../types/patient";
-import type { Doctor } from "../types/doctor";
 
 const MedicalRecordsPage: React.FC = () => {
     const [records, setRecords] = useState<MedicalRecord[]>([]);
@@ -23,44 +21,61 @@ const MedicalRecordsPage: React.FC = () => {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState<MedicalRecord | null>(null);
+    const [selectedRecordType, setSelectedRecordType] = useState<string>('all');
+    const [selectedDoctorId, setSelectedDoctorId] = useState<string>('all');
+    const [selectedDate, setSelectedDate] = useState<string>('');
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const [recs, pts, docs] = await Promise.all([
-                    getMedicalRecords(),
-                    getPatients(),
-                    getDoctors()
-                ]);
-                
-                setRecords(recs);
-                
-                // Create a mapping of patient IDs to patient objects
-                const patientsMap = pts.reduce((acc, patient) => ({
-                    ...acc,
-                    [patient.id]: patient
-                }), {} as Record<string, Patient>);
-                setPatients(patientsMap);
-                
-                // Create a mapping of doctor IDs to doctor objects
-                const doctorsMap = docs.reduce((acc, doctor) => ({
-                    ...acc,
-                    [doctor.id]: doctor
-                }), {} as Record<string, Doctor>);
-                setDoctors(doctorsMap);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                toast.error("Failed to fetch data");
-            } finally {
-                setLoading(false);
-            }
-        };
-        
         fetchData();
-    }, []);
+    }, [selectedRecordType, selectedDoctorId, selectedDate]);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [allRecs, pts, allDocs] = await Promise.all([
+                getMedicalRecords(),
+                getPatients(),
+                getDoctors()
+            ]);
+            
+            let filteredRecs = allRecs;
+
+            if (selectedRecordType !== 'all') {
+                filteredRecs = filteredRecs.filter(rec => rec.recordType === selectedRecordType);
+            }
+
+            if (selectedDoctorId !== 'all') {
+                filteredRecs = filteredRecs.filter(rec => rec.doctorId === selectedDoctorId);
+            }
+
+            if (selectedDate) {
+                filteredRecs = filteredRecs.filter(rec => new Date(rec.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString());
+            }
+
+            setRecords(filteredRecs);
+            
+            // Create a mapping of patient IDs to patient objects
+            const patientsMap = pts.reduce((acc, patient) => ({
+                ...acc,
+                [patient.id]: patient
+            }), {} as Record<string, Patient>);
+            setPatients(patientsMap);
+            
+            // Create a mapping of doctor IDs to doctor objects
+            const doctorsMap = allDocs.reduce((acc, doctor) => ({
+                ...acc,
+                [doctor.id]: doctor
+            }), {} as Record<string, Doctor>);
+            setDoctors(doctorsMap);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            toast.error("Failed to fetch data");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleViewRecord = (record: MedicalRecord) => {
         navigate(`/records/${record.id}`);
@@ -176,28 +191,32 @@ const MedicalRecordsPage: React.FC = () => {
             <div className="flex flex-col gap-4 md:flex-row md:items-center">
                 <select
                     className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    defaultValue="all"
+                    value={selectedRecordType}
+                    onChange={(e) => setSelectedRecordType(e.target.value)}
                 >
                     <option value="all">All Record Types</option>
-                    <option value="physical">Physical Examination</option>
-                    <option value="consultation">Consultation</option>
-                    <option value="lab">Lab Results</option>
-                    <option value="imaging">Imaging</option>
+                    <option value="checkup">Checkup</option>
+                    <option value="followup">Follow-up</option>
+                    <option value="procedure">Procedure</option>
+                    <option value="emergency">Emergency</option>
                 </select>
 
                 <select
                     className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    defaultValue="all"
+                    value={selectedDoctorId}
+                    onChange={(e) => setSelectedDoctorId(e.target.value)}
                 >
                     <option value="all">All Doctors</option>
-                    <option value="dr-smith">Dr. Jane Smith</option>
-                    <option value="dr-johnson">Dr. John Johnson</option>
-                    <option value="dr-williams">Dr. Emily Williams</option>
+                    {Object.values(doctors).map(doctor => (
+                        <option key={doctor.id} value={doctor.id}>Dr. {doctor.name}</option>
+                    ))}
                 </select>
 
                 <input
                     type="date"
                     className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
                 />
             </div>
 

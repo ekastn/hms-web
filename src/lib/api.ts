@@ -1,20 +1,7 @@
-import axios, { type AxiosInstance, type AxiosResponse } from "axios";
+import axios, { type AxiosInstance, type AxiosResponse, type AxiosRequestConfig } from "axios";
+import type { ApiResponse } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5021/api";
-
-// Define the shape of our API response
-interface ApiResponse<T = any> {
-    success: boolean;
-    message: string;
-    data: T;
-    meta?: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-    };
-    errors?: Record<string, string[]>;
-}
 
 // Create axios instance with base config
 const api: AxiosInstance = axios.create({
@@ -42,11 +29,7 @@ api.interceptors.request.use(
 
 // Response interceptor for handling common errors
 api.interceptors.response.use(
-    (response: AxiosResponse<ApiResponse>) => {
-        // The backend wrapper returns a `data` property, we want to return that directly
-        if (response.data && typeof response.data === "object" && "data" in response.data) {
-            return response.data.data;
-        }
+    (response: AxiosResponse) => {
         return response.data;
     },
     (error) => {
@@ -59,7 +42,6 @@ api.interceptors.response.use(
                 errorMessage = (data as { message: string }).message;
             } else if (status === 401) {
                 errorMessage = "Unauthorized - Please log in";
-                // The AuthContext will handle the logout
                 window.dispatchEvent(new Event("unauthorized"));
             } else if (status === 403) {
                 errorMessage = "Forbidden - You do not have permission to perform this action";
@@ -90,4 +72,3 @@ api.interceptors.response.use(
 
 export { api };
 export default api;
-

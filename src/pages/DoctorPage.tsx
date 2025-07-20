@@ -5,8 +5,8 @@ import { ArrowLeft, Edit, Trash, Calendar, Users, Mail, Phone, Clock } from "luc
 import { formatTimeSlot } from "../utils/dateTime";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
-import type { DoctorDetailResponse } from "../types/doctor";
-import { getDoctorById, deleteDoctor } from "../lib/api/doctors";
+import type { DoctorDetailResponse } from "@/lib/types";
+import { getDoctorById, deleteDoctor, getDoctorDetail } from "../services/doctors";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { EditDoctorForm } from "../components/organisms/forms/EditDoctorForm";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 const DoctorPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [doctor, setDoctor] = useState<DoctorDetailResponse | null>(null);
+    const [detail, setDetail] = useState<DoctorDetailResponse | null>(null);
     const [showRecentPatients, setShowRecentPatients] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -37,20 +37,9 @@ const DoctorPage: React.FC = () => {
     const fetchDoctor = async (doctorId: string) => {
         setLoading(true);
         try {
-            const data = await getDoctorById(doctorId);
+            const data = await getDoctorDetail(doctorId);
             if (data) {
-                // If the data has recentPatients, it's a DoctorDetailResponse
-                if ('recentPatients' in data) {
-                    setDoctor(data as DoctorDetailResponse);
-                    setShowRecentPatients(true);
-                } else {
-                    // Otherwise, it's a basic Doctor, convert it to DoctorDetailResponse
-                    setDoctor({
-                        ...data,
-                        recentPatients: []
-                    });
-                    setShowRecentPatients(false);
-                }
+                setDetail(data);
             } else {
                 toast("Doctor not found");
                 navigate("/doctors");
@@ -73,10 +62,10 @@ const DoctorPage: React.FC = () => {
     };
 
     const confirmDelete = async () => {
-        if (!doctor) return;
+        if (!detail) return;
 
         try {
-            await deleteDoctor(doctor.id);
+            await deleteDoctor(detail.doctor.id);
             toast("Doctor deleted");
             navigate("/doctors");
         } catch (error) {
@@ -103,7 +92,7 @@ const DoctorPage: React.FC = () => {
         );
     }
 
-    if (!doctor) {
+    if (!detail) {
         return (
             <div className="text-center py-12">
                 <h2 className="text-2xl font-bold mb-2">Doctor Not Found</h2>
@@ -130,7 +119,7 @@ const DoctorPage: React.FC = () => {
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-3xl font-bold tracking-tight">{doctor.name}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{detail.doctor.name}</h1>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={handleEdit}>
@@ -155,48 +144,46 @@ const DoctorPage: React.FC = () => {
                                 <Users className="h-8 w-8 text-primary" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-semibold">{doctor.name}</h3>
-                                <p className="text-muted-foreground">{doctor.specialty}</p>
+                                <h3 className="text-xl font-semibold">{detail.doctor.name}</h3>
+                                <p className="text-muted-foreground">{detail.doctor.specialty}</p>
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <Mail className="h-4 w-4 text-muted-foreground" />
-                                <span>{doctor.email}</span>
+                                <span>{detail.doctor.email}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Phone className="h-4 w-4 text-muted-foreground" />
-                                <span>{doctor.phone}</span>
+                                <span>{detail.doctor.phone}</span>
                             </div>
-                            <div className="flex items-start gap-2">
-                                <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
-                                <div>
-                                    <p className="font-medium mb-1">Availability:</p>
-                                    {doctor.availability.length > 0 ? (
-                                        <ul className="space-y-1 text-sm">
-                                            {doctor.availability.map((slot, index) => (
-                                                <li key={`${slot.dayOfWeek}-${slot.startTime}-${index}`} className="flex items-center gap-2">
-                                                    <Clock className="h-3 w-3 text-muted-foreground" />
-                                                    <span>{
-                                                        formatTimeSlot({
-                                                            dayOfWeek: slot.dayOfWeek,
-                                                            startTime: slot.startTime,
-                                                            endTime: slot.endTime
-                                                        })
-                                                    }</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground">No availability set</p>
-                                    )}
-                                </div>
-                            </div>
-                            {showRecentPatients && doctor?.recentPatients && (
+                            {detail.doctor.availability &&
+                                detail.doctor.availability.length > 0 && (
+                                    <div className="flex items-start gap-2">
+                                        <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                                        <div>
+                                            <p className="font-medium mb-1">Availability:</p>
+                                            <ul className="space-y-1 text-sm">
+                                                {detail.doctor.availability.map(
+                                                    (slot: any, index: number) => (
+                                                        <li
+                                                            key={`${slot.dayOfWeek}-${slot.startTime}-${index}`}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <Clock className="h-3 w-3 text-muted-foreground" />
+                                                            <span>{formatTimeSlot(slot)}</span>
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
+                            {showRecentPatients && detail?.recentPatients && (
                                 <div className="flex items-center gap-2">
                                     <Users className="h-4 w-4 text-muted-foreground" />
-                                    <span>Recent Patients: {doctor.recentPatients.length}</span>
+                                    <span>Recent Patients: {detail.recentPatients.length}</span>
                                 </div>
                             )}
                         </div>
@@ -209,23 +196,27 @@ const DoctorPage: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {/* TODO: This would be populated with actual patient data */}
-                            {[1, 2, 3].map((i) => (
-                                <div
-                                    key={i}
-                                    className="flex items-center gap-4 rounded-lg border p-3"
-                                >
-                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <Users className="h-5 w-5 text-primary" />
+                            {detail.recentPatients && detail.recentPatients.length > 0 ? (
+                                detail.recentPatients.map((patient) => (
+                                    <div
+                                        key={patient.id}
+                                        className="flex items-center gap-4 rounded-lg border p-3"
+                                    >
+                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <Users className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{patient.name}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Last visit:{" "}
+                                                {new Date(patient.lastVisit).toLocaleDateString()}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-medium">Patient #{i}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Last visit: 3 days ago
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p className="text-muted-foreground">No recent patients found.</p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -236,14 +227,13 @@ const DoctorPage: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle>Edit Doctor</DialogTitle>
                     </DialogHeader>
-                    {doctor && (
+                    {detail && (
                         <EditDoctorForm
-                            doctor={doctor}
+                            doctor={detail.doctor}
                             onSuccess={(updatedDoctor) => {
-                                setDoctor({
-                                    ...updatedDoctor,
-                                    recentPatients: doctor.recentPatients || []
-                                });
+                                setDetail((prev) =>
+                                    prev ? { ...prev, doctor: updatedDoctor } : null
+                                );
                                 closeEditDialog();
                                 toast("Doctor updated");
                             }}
@@ -258,7 +248,7 @@ const DoctorPage: React.FC = () => {
                 onClose={() => setDeleteDialogOpen(false)}
                 onConfirm={confirmDelete}
                 title="Delete Doctor"
-                description={`Are you sure you want to delete ${doctor.name}? This action cannot be undone.`}
+                description={`Are you sure you want to delete ${detail.doctor.name}? This action cannot be undone.`}
                 confirmText="Delete"
                 cancelText="Cancel"
                 variant="delete"
@@ -266,6 +256,5 @@ const DoctorPage: React.FC = () => {
         </div>
     );
 };
-
 
 export default DoctorPage;

@@ -1,8 +1,8 @@
 import type React from "react";
 import { useState } from "react";
 import { FormField } from "../../molecules/FormField";
-import { updateDoctor } from "../../../lib/api/doctors";
-import type { Doctor } from "../../../types/doctor";
+import { updateDoctor } from "@/services/doctors";
+import type { Doctor } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 interface EditDoctorFormProps {

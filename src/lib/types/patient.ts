@@ -1,5 +1,5 @@
-import { Appointment } from "./appointment";
-import { MedicalRecord } from "./medicalRecord";
+import type { Appointment } from "./appointment";
+import type { MedicalRecord } from "./medicalRecord";
 
 export interface Patient {
   id: string;

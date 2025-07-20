@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { createAppointment } from "../../../lib/api/appointments";
-import { getPatients } from "../../../lib/api/patients";
-import { getDoctors } from "../../../lib/api/doctors";
-import type { Appointment, AppointmentType } from "../../../types/appointment";
-import type { Patient } from "../../../types/patient";
-import type { Doctor } from "../../../types/doctor";
+import { createAppointment } from "@/services/appointments";
+import { getPatients } from "@/services/patients";
+import { getDoctors } from "@/services/doctors";
+import type { Appointment, AppointmentType } from "@/lib/types";
+import type { Patient } from "@/lib/types";
+import type { Doctor } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Button } from "../../ui/button";
 import { Loader2, Calendar, Clock, User, Stethoscope } from "lucide-react";

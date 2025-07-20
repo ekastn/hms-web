@@ -1,9 +1,10 @@
 import type { 
     MedicalRecord, 
     CreateMedicalRecordRequest, 
-    UpdateMedicalRecordRequest 
-} from "../types/medicalRecord";
-import { api } from "./client";
+    UpdateMedicalRecordRequest,
+    ApiResponse
+} from "@/lib/types";
+import { api } from "../lib/api";
 
 /**
  * Get all medical records
@@ -11,8 +12,8 @@ import { api } from "./client";
  */
 export const getMedicalRecords = async (): Promise<MedicalRecord[]> => {
     try {
-        const response = await api.get<MedicalRecord[]>('/records');
-        return response;
+        const response = await api.get<ApiResponse<MedicalRecord[]>>('/records');
+        return response.data;
     } catch (error) {
         console.error('Error fetching medical records:', error);
         throw new Error('Failed to fetch medical records');
@@ -26,8 +27,8 @@ export const getMedicalRecords = async (): Promise<MedicalRecord[]> => {
  */
 export const getMedicalRecordById = async (id: string): Promise<MedicalRecord> => {
     try {
-        const response = await api.get<MedicalRecord>(`/records/${id}`);
-        return response;
+        const response = await api.get<ApiResponse<MedicalRecord>>(`/records/${id}`);
+        return response.data;
     } catch (error) {
         console.error(`Error fetching medical record ${id}:`, error);
         throw new Error('Failed to fetch medical record');
@@ -41,8 +42,8 @@ export const getMedicalRecordById = async (id: string): Promise<MedicalRecord> =
  */
 export const getMedicalRecordsByPatientId = async (patientId: string): Promise<MedicalRecord[]> => {
     try {
-        const response = await api.get<MedicalRecord[]>(`/records/patient/${patientId}`);
-        return response;
+        const response = await api.get<ApiResponse<MedicalRecord[]>>(`/records/patient/${patientId}`);
+        return response.data;
     } catch (error) {
         console.error(`Error fetching medical records for patient ${patientId}:`, error);
         throw new Error('Failed to fetch patient medical records');
@@ -58,8 +59,8 @@ export const createMedicalRecord = async (
     record: CreateMedicalRecordRequest
 ): Promise<MedicalRecord> => {
     try {
-        const response = await api.post<MedicalRecord>('/records', record);
-        return response;
+        const response = await api.post<ApiResponse<MedicalRecord>>('/records', record);
+        return response.data;
     } catch (error) {
         console.error('Error creating medical record:', error);
         throw new Error('Failed to create medical record');
@@ -77,8 +78,8 @@ export const updateMedicalRecord = async (
     updates: UpdateMedicalRecordRequest
 ): Promise<MedicalRecord> => {
     try {
-        const response = await api.put<MedicalRecord>(`/records/${id}`, updates);
-        return response;
+        const response = await api.put<ApiResponse<MedicalRecord>>(`/records/${id}`, updates);
+        return response.data;
     } catch (error) {
         console.error(`Error updating medical record ${id}:`, error);
         throw new Error('Failed to update medical record');
@@ -111,10 +112,10 @@ export const getMedicalRecordsByDateRange = async (
     endDate: string
 ): Promise<MedicalRecord[]> => {
     try {
-        const response = await api.get<MedicalRecord[]>(
+        const response = await api.get<ApiResponse<MedicalRecord[]>>(
             `/records/date-range?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}`
         );
-        return response;
+        return response.data;
     } catch (error) {
         console.error('Error fetching medical records by date range:', error);
         throw new Error('Failed to fetch medical records by date range');

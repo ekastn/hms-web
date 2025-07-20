@@ -1,8 +1,8 @@
 import type React from "react";
 import { useState } from "react";
 import { FormField } from "../../molecules/FormField";
-import { updateAppointment } from "../../../lib/api/appointments";
-import type { Appointment } from "../../../types/appointment";
+import { updateAppointment } from "@/services/appointments";
+import type { Appointment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 interface EditAppointmentFormProps {
@@ -17,8 +17,8 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
     onCancel,
 }) => {
     const [formData, setFormData] = useState({
-        date: appointment.date,
-        time: appointment.time,
+        date: new Date(appointment.dateTime).toISOString().split('T')[0],
+        time: new Date(appointment.dateTime).toTimeString().split(' ')[0].substring(0, 5),
         type: appointment.type,
         location: appointment.location,
         notes: appointment.notes || "",
@@ -153,20 +153,16 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
                 </select>
             </div>
 
-            <div className="space-y-2">
-                <label htmlFor="notes" className="text-sm font-medium">
-                    Notes
-                </label>
-                <textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    placeholder="Additional notes about the appointment"
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    rows={3}
-                />
-            </div>
+            <FormField
+                id="notes"
+                name="notes"
+                label="Notes"
+                as="textarea"
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder="Additional notes about the appointment"
+                rows={3}
+            />
 
             {errors.submit && <p className="text-destructive text-sm">{errors.submit}</p>}
 

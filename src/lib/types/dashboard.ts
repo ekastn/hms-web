@@ -1,10 +1,4 @@
-export interface Activity {
-    id: string;
-    type: string; // e.g., "APPOINTMENT", "MEDICAL_RECORD"
-    title: string;
-    description: string;
-    timestamp: string;
-}
+import type { Activity } from "./activity";
 
 export interface UpcomingAppointment {
     id: string;
