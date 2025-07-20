@@ -39,7 +39,7 @@ export const updateAppointment = async (
   id: string,
   updates: UpdateAppointmentRequest
 ): Promise<void> => {
-  await api.put<ApiResponse<Appointment>>(`/appointments/${id}`, updates);
+  await api.put<ApiResponse<void>>(`/appointments/${id}`, updates);
 };
 
 // Update appointment status
@@ -47,7 +47,7 @@ export const updateAppointmentStatus = async (
   id: string,
   status: AppointmentStatus
 ): Promise<void> => {
-  await api.put<Appointment>(`/appointments/${id}/status`, { status });
+  await api.put<ApiResponse<void>>(`/appointments/${id}/status`, { status });
 };
 
 // Delete appointment

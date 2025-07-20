@@ -117,9 +117,9 @@ const AppointmentPage: React.FC = () => {
         if (!appointment || !newStatus) return;
 
         try {
-            const updatedAppointment = await updateAppointmentStatus(appointment.id, newStatus);
-            setAppointment(updatedAppointment!);
+            await updateAppointmentStatus(appointment.id, newStatus);
             toast("Status updated");
+            fetchAppointment(id); 
         } catch (error) {
             console.log(error);
             toast("Failed to update appointment status");

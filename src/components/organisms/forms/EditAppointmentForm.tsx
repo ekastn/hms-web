@@ -2,7 +2,7 @@ import type React from "react";
 import { useState } from "react";
 import { FormField } from "../../molecules/FormField";
 import { updateAppointment } from "@/services/appointments";
-import { AppointmentStatus, type Appointment } from "@/lib/types";
+import { AppointmentStatus, type Appointment, type UpdateAppointmentRequest } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 interface EditAppointmentFormProps {
@@ -77,7 +77,19 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            await updateAppointment(appointment.id, formData);
+            const combinedDateTime = new Date(`${formData.date}T${formData.time}:00`).toISOString();
+
+            const updates: UpdateAppointmentRequest = {
+                type: formData.type,
+                dateTime: combinedDateTime,
+                duration: formData.duration,
+                status: formData.status,
+                location: formData.location,
+                notes: formData.notes,
+                // patientHistory is not directly editable in this form, so it's omitted
+            };
+
+            await updateAppointment(appointment.id, updates);
             onSuccess();
         } catch (error) {
             setErrors({

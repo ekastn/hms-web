@@ -53,6 +53,12 @@ export interface CreateAppointmentRequest {
   patientHistory?: string;
 }
 
-export interface UpdateAppointmentRequest extends Partial<CreateAppointmentRequest> {
+export interface UpdateAppointmentRequest {
+  type?: AppointmentType;
+  dateTime?: string;
+  duration?: number;
   status?: AppointmentStatus;
+  location?: string;
+  notes?: string;
+  patientHistory?: string;
 }
