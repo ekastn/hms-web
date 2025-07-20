@@ -11,6 +11,7 @@ import MedicalRecordsPage from "../pages/MedicalRecordsPage";
 import MedicalRecordPage from "../pages/MedicalRecordPage";
 import LoginPage from "../pages/LoginPage";
 import ProtectedRoute from "./ProtectedRoute";
+import UsersPage from "../pages/UsersPage";
 
 export const router = createBrowserRouter([
     {
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
                     { path: "appointments/:id", element: <AppointmentPage /> },
                     { path: "records", element: <MedicalRecordsPage /> },
                     { path: "records/:id", element: <MedicalRecordPage /> },
+                    { path: "users", element: <UsersPage /> },
                 ],
             },
         ],

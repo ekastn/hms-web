@@ -5,9 +5,9 @@ import { Toaster } from "../ui/sonner";
 
 const DashboardLayout: React.FC = () => {
     return (
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen max-h-screen bg-background">
             <Sidebar />
-            <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col overflow-auto">
                 <main className="flex-1 p-4 md:p-6">
                     <Outlet />
                 </main>

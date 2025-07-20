@@ -1,12 +1,24 @@
 import type React from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, UserRound, Calendar, FileText } from "lucide-react";
+import {
+    LayoutDashboard,
+    Users,
+    UserRound,
+    Calendar,
+    FileText,
+    Settings,
+    LogOut,
+} from "lucide-react";
 import { cn } from "../../lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Role } from "@/lib/types";
+import { Button } from "@/components/ui/button";
 
 interface SidebarLink {
     title: string;
     href: string;
     icon: React.ReactNode;
+    roles?: Role[];
 }
 
 const links: SidebarLink[] = [
@@ -35,31 +47,56 @@ const links: SidebarLink[] = [
         href: "/records",
         icon: <FileText className="h-5 w-5" />,
     },
+    {
+        title: "User Management",
+        href: "/users",
+        icon: <Settings className="h-5 w-5" />,
+        roles: [Role.Admin],
+    },
 ];
 
 export const Sidebar: React.FC = () => {
+    const { user, logout } = useAuth();
+
     return (
-        <aside className="inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-background">
+        <aside className="inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-background max-h-screen">
             <div className="flex h-16 items-center border-b px-6">
                 <h2 className="text-xl font-bold">HMS Admin</h2>
             </div>
             <nav className="flex-1 space-y-1 px-3 py-4">
-                {links.map((link) => (
-                    <NavLink
-                        key={link.href}
-                        to={link.href}
-                        className={({ isActive }) =>
-                            cn(
-                                "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                                isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                            )
-                        }
-                    >
-                        {link.icon}
-                        <span className="ml-3">{link.title}</span>
-                    </NavLink>
-                ))}
+                {links.map((link) => {
+                    // Check if the link has roles defined and if the current user's role is included
+                    const canView = link.roles ? user && link.roles.includes(user.role) : true;
+
+                    if (!canView) {
+                        return null; // Don't render the link if the user doesn't have the required role
+                    }
+
+                    return (
+                        <NavLink
+                            key={link.href}
+                            to={link.href}
+                            className={({ isActive }) =>
+                                cn(
+                                    "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                    isActive
+                                        ? "bg-primary text-primary-foreground"
+                                        : "hover:bg-muted"
+                                )
+                            }
+                        >
+                            {link.icon}
+                            <span className="ml-3">{link.title}</span>
+                        </NavLink>
+                    );
+                })}
             </nav>
+            <div className="mt-auto p-3">
+                <Button variant="ghost" className="w-full justify-start" onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </Button>
+            </div>
         </aside>
     );
 };

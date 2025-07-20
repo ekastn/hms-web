@@ -1,11 +1,4 @@
-export type Role = "Admin" | "Doctor" | "Nurse" | "Receptionist" | "Management";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-}
+import type { User } from "./user";
 
 export interface AuthResponse {
   token: string;

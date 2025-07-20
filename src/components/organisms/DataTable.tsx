@@ -185,15 +185,17 @@ export function DataTable<T extends { id: string | number }>({
                                                             onClick={() => action.onClick(row)}
                                                             className={cn(
                                                                 "flex items-center",
-                                                                action.variant === 'destructive' && "text-destructive focus:text-destructive-foreground focus:bg-destructive"
+                                                                typeof action.variant === 'function'
+                                                                    ? action.variant(row) === 'destructive' && "text-destructive focus:text-destructive-foreground focus:bg-destructive"
+                                                                    : action.variant === 'destructive' && "text-destructive focus:text-destructive-foreground focus:bg-destructive"
                                                             )}
                                                         >
-                                                            {action.icon && (
+                                                            {typeof action.icon === 'function' ? action.icon(row) : action.icon && (
                                                                 <span className="mr-2">
                                                                     {action.icon}
                                                                 </span>
                                                             )}
-                                                            {action.label}
+                                                            {typeof action.label === 'function' ? action.label(row) : action.label}
                                                         </DropdownMenuItem>
                                                     ))}
                                                 </DropdownMenuContent>

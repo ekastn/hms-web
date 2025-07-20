@@ -5,4 +5,5 @@ export * from './dashboard';
 export * from './doctor';
 export * from './medicalRecord';
 export * from './patient';
+export * from './user';
 export * from './api';
