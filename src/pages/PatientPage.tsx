@@ -263,9 +263,10 @@ const PatientPage: React.FC = () => {
                     {patient && (
                         <EditPatientForm
                             patient={patient}
-                            onSuccess={(updatedPatient) => {
-                                setPatientDetail(prev => prev ? { ...prev, patient: updatedPatient } : null);
+                            onSuccess={() => {
                                 closeEditDialog();
+                                toast.success("Patient updated");
+                                fetchPatient(id);
                             }}
                             onCancel={closeEditDialog}
                         />

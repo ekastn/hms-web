@@ -342,10 +342,10 @@ const AppointmentPage: React.FC = () => {
                     {appointment && (
                         <EditAppointmentForm
                             appointment={appointment}
-                            onSuccess={(updatedAppointment) => {
-                                setAppointment(updatedAppointment);
+                            onSuccess={() => {
                                 closeEditDialog();
                                 toast("Appointment updated");
+                                fetchAppointment(id);
                             }}
                             onCancel={closeEditDialog}
                         />

@@ -230,12 +230,10 @@ const DoctorPage: React.FC = () => {
                     {detail && (
                         <EditDoctorForm
                             doctor={detail.doctor}
-                            onSuccess={(updatedDoctor) => {
-                                setDetail((prev) =>
-                                    prev ? { ...prev, doctor: updatedDoctor } : null
-                                );
+                            onSuccess={() => {
                                 closeEditDialog();
                                 toast("Doctor updated");
+                                fetchDoctor(detail.doctor.id);
                             }}
                             onCancel={closeEditDialog}
                         />

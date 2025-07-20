@@ -76,10 +76,9 @@ export const createMedicalRecord = async (
 export const updateMedicalRecord = async (
     id: string,
     updates: UpdateMedicalRecordRequest
-): Promise<MedicalRecord> => {
+): Promise<void> => {
     try {
-        const response = await api.put<ApiResponse<MedicalRecord>>(`/records/${id}`, updates);
-        return response.data;
+        await api.put<ApiResponse<MedicalRecord>>(`/records/${id}`, updates);
     } catch (error) {
         console.error(`Error updating medical record ${id}:`, error);
         throw new Error('Failed to update medical record');

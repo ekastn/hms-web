@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 interface EditDoctorFormProps {
     doctor: Doctor;
-    onSuccess: (doctor: Doctor) => void;
+    onSuccess: () => void;
     onCancel: () => void;
 }
 
@@ -66,12 +66,8 @@ export const EditDoctorForm: React.FC<EditDoctorFormProps> = ({ doctor, onSucces
 
         setIsSubmitting(true);
         try {
-            const updatedDoctor = await updateDoctor(doctor.id, formData);
-            if (updatedDoctor) {
-                onSuccess(updatedDoctor);
-            } else {
-                throw new Error("Failed to update doctor");
-            }
+            await updateDoctor(doctor.id, formData);
+            onSuccess();
         } catch (error) {
             setErrors({
                 submit: "Failed to update doctor. Please try again.",

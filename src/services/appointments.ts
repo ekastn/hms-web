@@ -38,18 +38,16 @@ export const createAppointment = async (
 export const updateAppointment = async (
   id: string,
   updates: UpdateAppointmentRequest
-): Promise<Appointment> => {
-  const response = await api.put<ApiResponse<Appointment>>(`/appointments/${id}`, updates);
-  return response.data;
+): Promise<void> => {
+  await api.put<ApiResponse<Appointment>>(`/appointments/${id}`, updates);
 };
 
 // Update appointment status
 export const updateAppointmentStatus = async (
   id: string,
   status: AppointmentStatus
-): Promise<Appointment> => {
-  const response = await api.put<ApiResponse<Appointment>>(`/appointments/${id}/status`, { status });
-  return response.data;
+): Promise<void> => {
+  await api.put<Appointment>(`/appointments/${id}/status`, { status });
 };
 
 // Delete appointment

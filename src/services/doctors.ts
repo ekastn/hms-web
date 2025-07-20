@@ -35,9 +35,8 @@ export const createDoctor = async (doctor: CreateDoctorRequest): Promise<Doctor>
 export const updateDoctor = async (
   id: string,
   updates: UpdateDoctorRequest
-): Promise<Doctor> => {
-  const response = await api.put<ApiResponse<Doctor>>(`/doctors/${id}`, updates);
-  return response.data;
+): Promise<void> => {
+  await api.put<ApiResponse<Doctor>>(`/doctors/${id}`, updates);
 };
 
 // Delete doctor

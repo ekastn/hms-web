@@ -2,12 +2,12 @@ import type React from "react";
 import { useState } from "react";
 import { FormField } from "../../molecules/FormField";
 import { updateAppointment } from "@/services/appointments";
-import type { Appointment } from "@/lib/types";
+import { AppointmentStatus, type Appointment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 interface EditAppointmentFormProps {
     appointment: Appointment;
-    onSuccess: (appointment: Appointment) => void;
+    onSuccess: () => void;
     onCancel: () => void;
 }
 
@@ -19,6 +19,7 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
     const [formData, setFormData] = useState({
         date: new Date(appointment.dateTime).toISOString().split('T')[0],
         time: new Date(appointment.dateTime).toTimeString().split(' ')[0].substring(0, 5),
+        duration: appointment.duration,
         type: appointment.type,
         location: appointment.location,
         notes: appointment.notes || "",
@@ -31,7 +32,7 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({ ...prev, [name]: name === 'duration' ? parseInt(value, 10) : value }));
         // Clear error when field is edited
         if (errors[name]) {
             setErrors((prev) => {
@@ -61,6 +62,10 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
             newErrors.location = "Location is required";
         }
 
+        if (formData.duration <= 0) {
+            newErrors.duration = "Duration must be a positive number";
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -72,12 +77,8 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            const updatedAppointment = await updateAppointment(appointment.id, formData);
-            if (updatedAppointment) {
-                onSuccess(updatedAppointment);
-            } else {
-                throw new Error("Failed to update appointment");
-            }
+            await updateAppointment(appointment.id, formData);
+            onSuccess();
         } catch (error) {
             setErrors({
                 submit: "Failed to update appointment. Please try again.",
@@ -111,6 +112,18 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
                     error={errors.time}
                     required
                 />
+
+                <FormField
+                    id="duration"
+                    name="duration"
+                    label="Duration (minutes)"
+                    type="number"
+                    value={formData.duration}
+                    onChange={handleChange}
+                    placeholder="60"
+                    error={errors.duration}
+                    required
+                />
             </div>
 
             <FormField
@@ -135,23 +148,15 @@ export const EditAppointmentForm: React.FC<EditAppointmentFormProps> = ({
                 required
             />
 
-            <div className="space-y-2">
-                <label htmlFor="status" className="text-sm font-medium">
-                    Status
-                </label>
-                <select
-                    id="status"
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <option value="Scheduled">Scheduled</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                </select>
-            </div>
+            <FormField
+                id="status"
+                name="status"
+                label="Status"
+                as="select"
+                value={formData.status}
+                onChange={handleChange}
+                options={Object.values(AppointmentStatus).map(status => ({ value: status, label: status }))}
+            />
 
             <FormField
                 id="notes"

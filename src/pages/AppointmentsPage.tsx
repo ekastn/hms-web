@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, Edit, Trash2 as Trash, Plus, User } from "lucide-react";
 import { DataTable, type Column } from "../components/organisms/DataTable";
 import { ConfirmDialog } from "../components/organisms/ConfirmDialog";
-import type { Appointment, Patient, Doctor } from "@/lib/types";
+import type { Appointment, Patient, Doctor, AppointmentType, AppointmentStatus } from "@/lib/types";
 import { getAppointments, deleteAppointment } from "../services/appointments";
 import { getPatients } from "../services/patients";
 import { getDoctors } from "../services/doctors";

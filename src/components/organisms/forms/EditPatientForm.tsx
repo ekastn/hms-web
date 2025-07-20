@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 interface EditPatientFormProps {
     patient: Patient;
-    onSuccess: (patient: Patient) => void;
+    onSuccess: () => void;
     onCancel: () => void;
 }
 
@@ -27,7 +27,9 @@ export const EditPatientForm: React.FC<EditPatientFormProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         // Clear error when field is edited
@@ -78,15 +80,11 @@ export const EditPatientForm: React.FC<EditPatientFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            const updatedPatient = await updatePatient(patient.id, {
+            await updatePatient(patient.id, {
                 ...formData,
                 age: Number(formData.age),
             });
-            if (updatedPatient) {
-                onSuccess(updatedPatient);
-            } else {
-                throw new Error("Failed to update patient");
-            }
+            onSuccess();
         } catch (error) {
             setErrors({
                 submit: "Failed to update patient. Please try again.",
@@ -132,9 +130,9 @@ export const EditPatientForm: React.FC<EditPatientFormProps> = ({
                     error={errors.gender}
                     required
                     options={[
-                        { value: 'Male', label: 'Male' },
-                        { value: 'Female', label: 'Female' },
-                        { value: 'Other', label: 'Other' },
+                        { value: "Male", label: "Male" },
+                        { value: "Female", label: "Female" },
+                        { value: "Other", label: "Other" },
                     ]}
                 />
             </div>

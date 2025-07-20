@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 interface EditMedicalRecordFormProps {
     record: MedicalRecord;
-    onSuccess: (record: MedicalRecord) => void;
+    onSuccess: () => void;
     onCancel: () => void;
 }
 
@@ -26,7 +26,9 @@ export const EditMedicalRecordForm: React.FC<EditMedicalRecordFormProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         // Clear error when field is edited
@@ -69,12 +71,8 @@ export const EditMedicalRecordForm: React.FC<EditMedicalRecordFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            const updatedRecord = await updateMedicalRecord(record.id, formData);
-            if (updatedRecord) {
-                onSuccess(updatedRecord);
-            } else {
-                throw new Error("Failed to update medical record");
-            }
+            await updateMedicalRecord(record.id, formData);
+            onSuccess();
         } catch (error) {
             setErrors({
                 submit: "Failed to update medical record. Please try again.",

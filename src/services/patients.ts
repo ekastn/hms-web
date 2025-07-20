@@ -37,9 +37,8 @@ export const createPatient = async (
 export const updatePatient = async (
   id: string,
   updates: UpdatePatientRequest
-): Promise<Patient> => {
-  const response = await api.put<ApiResponse<Patient>>(`/patients/${id}`, updates);
-  return response.data;
+): Promise<void> => {
+  await api.put<ApiResponse<Patient>>(`/patients/${id}`, updates);
 };
 
 // Delete patient

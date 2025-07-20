@@ -203,10 +203,10 @@ const MedicalRecordDetailPage: React.FC = () => {
                     {record && (
                         <EditMedicalRecordForm
                             record={record}
-                            onSuccess={(updatedRecord) => {
-                                setRecord(updatedRecord);
+                            onSuccess={() => {
                                 closeEditDialog();
                                 toast("Medical record updated");
+                                fetchMedicalRecord(id);
                             }}
                             onCancel={closeEditDialog}
                         />
