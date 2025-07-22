@@ -66,7 +66,7 @@ export const Sidebar: React.FC = () => {
     const { user, logout } = useAuth();
 
     return (
-        <aside className="inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-background max-h-screen">
+        <aside className="flex flex-col border-r bg-background w-64">
             <div className="flex h-16 items-center border-b px-6">
                 <h2 className="text-xl font-bold">HMS Admin</h2>
             </div>
