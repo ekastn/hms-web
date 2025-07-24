@@ -138,7 +138,7 @@ const PatientsPage: React.FC = () => {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     <span className="ml-2">Loading patients...</span>
                 </div>
-            ) : patients.length === 0 ? (
+            ) : patients && patients.length === 0 ? (
                 <div className="text-center py-12 border rounded-lg">
                     <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium">No patients found</h3>
