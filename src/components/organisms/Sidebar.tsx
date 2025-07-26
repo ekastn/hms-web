@@ -68,7 +68,7 @@ export const Sidebar: React.FC = () => {
     return (
         <aside className="flex flex-col border-r bg-background w-64">
             <div className="flex h-16 items-center border-b px-6">
-                <h2 className="text-xl font-bold">HMS Admin</h2>
+                <h2 className="text-xl font-bold">HealthCare</h2>
             </div>
             <nav className="flex-1 space-y-1 px-3 py-4">
                 {links.map((link) => {
