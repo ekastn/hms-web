@@ -27,6 +27,11 @@ const PatientsPage: React.FC = () => {
         setLoading(true);
         try {
             const data = await getPatients();
+            if (!Array.isArray(data)) {
+                setLoading(false);
+                setPatients([]);
+                return;
+            }
             setPatients(data);
         } catch (error) {
             console.error("Error fetching patients:", error);

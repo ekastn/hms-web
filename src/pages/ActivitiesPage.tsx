@@ -14,6 +14,11 @@ const ActivitiesPage: React.FC = () => {
         setError(null);
         try {
             const data = await getActivities();
+            if (!Array.isArray(data)) {
+                setLoading(false);
+                setActivities([]);
+                return;
+            }
             setActivities(data);
         } catch (err) {
             setError("Failed to fetch activities.");

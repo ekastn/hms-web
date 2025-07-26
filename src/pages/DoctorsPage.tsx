@@ -28,7 +28,11 @@ const DoctorsPage: React.FC = () => {
         setLoading(true);
         try {
             const data = await getDoctors();
-            // Ensure availability is always an array
+            if (!Array.isArray(data)) {
+                setLoading(false);
+                setDoctors([]);
+                return;
+            }
             const formattedDoctors = data.map(doctor => ({
                 ...doctor,
                 availability: Array.isArray(doctor.availability) ? doctor.availability : []

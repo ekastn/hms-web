@@ -39,6 +39,14 @@ const MedicalRecordsPage: React.FC = () => {
                 getPatients(),
                 getDoctors()
             ]);
+
+            if (!allRecs || !pts || !allDocs) {
+                setLoading(false);
+                setRecords([]);
+                setPatients({});
+                setDoctors({});
+                return;
+            }
             
             let filteredRecs = allRecs;
 

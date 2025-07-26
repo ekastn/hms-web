@@ -38,6 +38,14 @@ const AppointmentsPage: React.FC = () => {
                 getDoctors()
             ]);
 
+            if (!appts || !pts || !docs) {
+                setLoading(false);
+                setAppointments([]);
+                setPatients({});
+                setDoctors({});
+                return;
+            }
+
             let filteredAppts = appts;
 
             if (selectedStatus !== 'all') {
